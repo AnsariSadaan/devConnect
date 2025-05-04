@@ -14,3 +14,12 @@
 - install axios 
 - cors install cors in backend ==> add middleware to with configuration : origin and credentials true
 - whenever youre call api so pass axios => {withCredebtials: true} 
+- installed redux tool kit + react-redux
+- configureStore => Provider => createSlice => add reducer to store
+- added redux dev tools in chrome 
+- login functionality done 
+- nvabar is updating as soon as user is logged in 
+- restricted other routes without login
+- without token page will redirect to login
+- logout functionality 
+- profile page 
