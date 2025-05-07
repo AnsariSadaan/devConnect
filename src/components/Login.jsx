@@ -23,7 +23,6 @@ const Login = () => {
             navigate('/feed');
         } catch (error) {
             setError(error?.response?.data?.message);
-            console.log(error);
         }
     }
 
