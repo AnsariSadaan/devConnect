@@ -3,10 +3,10 @@ import React from 'react'
 const UserCard = ({user}) => {
     const {firstName, lastName, age, about, skills, photoUrl, gender} = user;
     return (
-        <div className="card bg-base-100 w-96 shadow-sm">
+        <div className="card bg-base-300 w-80 shadow-sm">
             <figure>
                 <img
-                    className='w-60 h-60'
+                    className='w-60 h-[180px]'
                     src={photoUrl}
                     alt="user photo" />
             </figure>
@@ -15,9 +15,9 @@ const UserCard = ({user}) => {
                 {age && gender && <p>{age + " " +gender}</p>}
                 <p>{about}</p>
                 <p>{skills}</p>
-                <div className="card-actions justify-end">
-                    <button className="btn btn-danger">Swipe</button>
-                    <button className="btn btn-primary">Interested</button>
+                <div className="card-actions justify-center my-1">
+                    <button className="btn btn-primary">Ignore</button>
+                    <button className="btn btn-secondary">Interested</button>
                 </div>
             </div>
         </div>
