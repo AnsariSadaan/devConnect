@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux'
 
 const Profile = () => {
     const user = useSelector((store)=> store.user);
-    console.log(user?.data);
+    console.log(user);
     return (
         (user && <div>
             <EditProfile user={user} />
