@@ -19,7 +19,7 @@ const Login = () => {
                 emailId,
                 password,
             }, {withCredentials: true})
-            dispatch(addUser(response.data));
+            dispatch(addUser(response?.data?.data));
             navigate('/feed');
         } catch (error) {
             setError(error?.response?.data?.message);
