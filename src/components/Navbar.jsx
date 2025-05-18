@@ -12,9 +12,9 @@ const Navbar = () => {
 
     const handleLogout = async () => {
         try {
-            await axios.post(BASE_URL + "/logout",{}, { withCredentials: true });
+            await axios.post(BASE_URL + "/logout", {}, { withCredentials: true });
             dispatch(removeUser());
-            navigate("/login");
+            return navigate("/login");
         } catch (error) {
             console.error(error);
         }
@@ -26,13 +26,13 @@ const Navbar = () => {
                 <Link to={"/"} className="btn btn-ghost text-xl">DevConnect</Link>
             </div>
             {user && (<div className="flex gap-2 items-center">
-                <div className='form-control item-center px-4 text-base'>Welcome, <span className="ml-1 font-medium">{user.data.firstName}</span></div>
+                <div className='form-control item-center px-4 text-base'>Welcome, <span className="ml-1 font-medium">{user.firstName || 'User'}</span></div>
                 <div className="dropdown dropdown-end mx-5 flex">
                     <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
                         <div className="w-10 rounded-full">
                             <img
                                 alt="user photo"
-                                src={user.data.photoUrl} />
+                                src={user.photoUrl || "img"} />
                         </div>
                     </div>
                     <ul
