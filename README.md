@@ -25,3 +25,4 @@
 - profile page 
 - build the user card on feed 
 - build edit profile page 
+- see all my connection
