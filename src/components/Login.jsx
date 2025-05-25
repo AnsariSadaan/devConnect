@@ -7,7 +7,7 @@ import { BASE_URL } from '../utils/constants';
 
 const Login = () => {
 
-    const [emailId, setEmailId] = useState("sadaan72@gmail.com");
+    const [emailId, setEmailId] = useState("jeetkori@gmail.com");
     const [password, setPassword] = useState("Inf0rmat!0n@4");
     const [error, setError] = useState('');
     const dispatch = useDispatch();
@@ -20,7 +20,7 @@ const Login = () => {
                 password,
             }, {withCredentials: true})
             dispatch(addUser(response?.data?.data));
-            navigate('/feed');
+            navigate('/');
         } catch (error) {
             setError(error?.response?.data?.message);
         }
