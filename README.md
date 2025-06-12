@@ -24,5 +24,7 @@
 - logout functionality 
 - profile page 
 - build the user card on feed 
-- build edit profile page 
-- see all my connection
+- build edit profile page
+- show toast message while saving profile  
+- New Page - see all my connection
+- New page - seel all my connections requests
