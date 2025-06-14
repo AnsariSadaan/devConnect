@@ -79,9 +79,9 @@ const EditProfile = ({ user }) => {
                                     <div className="label">
                                         <span className="label-text">Gender:</span>
                                     </div>
-                                    <select defaultValue="Select Gender" value={gender}
+                                    <select value={gender || ""}
                                         onChange={(e) => setGender(e.target.value)} className="select my-2">
-                                        <option disabled={true}>Select Gender</option>
+                                        <option value={""} disabled>Select Gender</option>
                                         {genderOptions.map((option) => (
                                             <option key={option.value} value={option.value}>{option.label}</option>
                                         ))}
