@@ -7,8 +7,8 @@
 - Added navbar component from daisyui in app.jsx
 - Cretaed a seperate Navbar.jsx component file 
 - Installed react router dom
-- created browserRouter => routes => route = /body => routeChildren
-- create an outlet in body component 
+- created browserRouter => routes => route = /Layout => routeChildren
+- create an outlet in Layout component 
 - added footer 
 - create a login page 
 - install axios 
