@@ -1,5 +1,5 @@
 import axios from 'axios'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { BASE_URL } from '../utils/constants'
 import { useDispatch, useSelector } from 'react-redux'
 import { addFeed } from '../utils/feedSlice'
@@ -7,16 +7,24 @@ import UserCard from './userCard'
 
 const Feed = () => {
     const feed = useSelector((store) => store.feed);
+    const user = useSelector((store) => store.user);
     const dispatch = useDispatch();
+    const [loading, setLoading] = useState(true);
 
     const getFeed = async () => {
-        if (feed) return;
         try {
             const response = await axios.get(BASE_URL + "/feed", { withCredentials: true })
+            let users = response.data?.data || [];
             console.log(response);
-            dispatch(addFeed(response.data.data));
+            // Filter out the logged-in user 
+            if (user?._id) {
+                users = users.filter(u => u._id !== user._id);
+            }
+            dispatch(addFeed(users));
         } catch (error) {
             console.error(error);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -24,8 +32,12 @@ const Feed = () => {
         getFeed();
     }, [])
 
-    if(!feed || feed.length <= 0){
-        return <h1 className='flex justify-center my-10'>No new user founds</h1>
+    if (loading) {
+        return <h1 className='flex justify-center my-10'>Loading feed...</h1>;
+    }
+
+    if (!feed || feed.length === 0) {
+        return <h1 className='flex justify-center my-10'>No new users found</h1>;
     }
 
     return (
