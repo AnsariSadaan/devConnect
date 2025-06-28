@@ -29,3 +29,18 @@
 - New Page - see all my connection
 - New page - seel all my connections requests
 - feature - Accept/Reject connection request
+
+
+
+
+aws notes
+deployment 
+signup on aws 
+launch instance 
+create key value pair secret key 
+on git bash => chmod 400 devConnect-secret.pem
+connected to the ubuntu machine using => ssh -i "devConnect-secret.pem" ubuntu@ec2-51-21-167-60.eu-north-1.compute.amazonaws.com
+installed node on ubuntu 
+cone backend and frontend 
+
+
