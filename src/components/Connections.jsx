@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 // import { BASE_URL } from '../utils/constants.js'
 import { useDispatch, useSelector } from 'react-redux';
 import { addConnections } from '../utils/connectionSlice.js';
+import { BASE_URL } from '../utils/constants.js';
 
 const Connections = () => {
     const connections = useSelector((store) => store.connections);
@@ -11,7 +12,7 @@ const Connections = () => {
     const fetchConnections = async () => {
         setError('');
         try {
-            const res = await axios.get("http://localhost:4000/api/v1/users/connections", {
+            const res = await axios.get(BASE_URL + "/connections", {
                 withCredentials: true,
             });
             console.log(res.data.data);
