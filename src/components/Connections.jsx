@@ -11,7 +11,7 @@ const Connections = () => {
     const fetchConnections = async () => {
         setError('');
         try {
-            const res = await axios.get("/api/v1/users/connections", {
+            const res = await axios.get("http://localhost:4000/api/v1/users/connections", {
                 withCredentials: true,
             });
             console.log(res.data.data);

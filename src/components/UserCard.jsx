@@ -12,7 +12,12 @@ const UserCard = ({ user }) => {
             const res = await axios.post(BASE_URL + "/request/send/" + status + "/" + userId, {}, { withCredentials: true })
             dispatch(removeUserFromFeed(userId));
         } catch (error) {
-            console.log(error);
+            if (error.response?.status === 409) {
+                alert("Request already exists. Removing user from feed.");
+                dispatch(removeUserFromFeed(userId));
+            } else {
+                console.error(error);
+            }
         }
     }
 
