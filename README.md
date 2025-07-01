@@ -41,6 +41,64 @@ create key value pair secret key
 on git bash => chmod 400 devConnect-secret.pem
 connected to the ubuntu machine using => ssh -i "devConnect-secret.pem" ubuntu@ec2-51-21-167-60.eu-north-1.compute.amazonaws.com
 installed node on ubuntu 
-cone backend and frontend 
+clone backend and frontend 
+ - go to frontend path 
+    - do npm i 
+    - npm run build 
+    - sudo apt update
+    - sudo apt install nginx
+    - sudo systemctl start nginx
+    - sudo systemctl enable nginx
+    - copy code from dist(build file) to var/www/html
+    - sudo scp -r dist/* /var/www/html/
+    - Enable port 80 of your instance to make this run 
 
 
+- deploy backend 
+    - removed mongo link from .env
+    - allowed ec2 instance public ip in mongo server
+    - installed pm2 :- npm i pm2 -g 
+    - pm2 start npm -- start
+    - pm2 logs
+    - flush logs (pm2 flush service_Name)
+    - pm2 ls
+    - pm2 stop service_name
+    - pm2 delete service_name
+    - pm2 start npm --name servicename -- start
+    - config nginx 
+    - restart the nginx -> sudo systemctl restart nginx 
+
+to check which port is running (sudo lsof -i :4000)
+to stop or kill (kill -9 id(1234))
+
+
+    frontend = http://13.60.196.16/
+    backend  = http://13.60.196.16:4000/
+
+    domain name = devConnect.com ==> 13.60.196.16
+
+    frontend = devConnect.com 
+    backend  = devConnect.com:4000 ==> devConnect.com/api
+
+    nginx config
+
+    server_name 13.60.196.16;
+
+    location /api/ {
+        proxy_pass http://localhost:4000/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+
+# Adding a custom domain name
+    - purchase a domain name from godaddy 
+    - signup on cloudflare $ add a new domain name 
+    - change the nameserver on godaddy and point it to cloudflare
+    - wait for sometime till nameserver are updated 
+    - DNS record : A devConnect.info  13.60.222.228
+    - enable ssl for website from browser to cloudflare 
+    - homw work to do from cloudflare to my origin server
