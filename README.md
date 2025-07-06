@@ -102,3 +102,19 @@ to stop or kill (kill -9 id(1234))
     - DNS record : A devConnect.info  13.60.222.228
     - enable ssl for website from browser to cloudflare 
     - homw work to do from cloudflare to my origin server
+
+
+# Sending email via SES
+    - create a IAM user
+    - Give Access to AmazoneSESFull Access
+    - Amazon SES : create an identity 
+    - verify your domain name
+    - verify an email address - identity
+    - install AWS SDK - v3 : 
+    - code example :- https://github.com/awsdocs/aws-doc-sdk-examples/blob/main/javascript/example_code/ses/ses_sendemail.js
+    - setup SesClient 
+    - Access Credentials should be created in IAM under securityCredentials Tab
+    - Add the credentials to the env file 
+    - wrie code for sesClient
+    - write code for sending email address
+    - Make the email dynamic by passing more parameter to the run function  
