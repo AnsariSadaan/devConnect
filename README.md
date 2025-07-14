@@ -118,3 +118,29 @@ to stop or kill (kill -9 id(1234))
     - wrie code for sesClient
     - write code for sending email address
     - Make the email dynamic by passing more parameter to the run function  
+
+
+# scheduling cron jobs in nodejs
+    - installing node-cron
+    - learning about cron job -> crontabguru
+    - schedule a job
+    - learned about datefns
+    - find all the unique emailId who have got connection request in previous day
+    - send email 
+    - explore queue mechanism to send bulk emails
+    - amazon ses bilk emails
+    - make send email function dynamic
+    - bee-queue and bullmq (queue package)
+
+# RazorPay Payment Gateway Integration
+    - Signup on Razorpay & complete KYC 
+    - created a ui for premium page
+    - createing an api for payment 
+# need to make some pages
+privacy policy 
+terms and service 
+contact us
+refund policy
+team
+
+
