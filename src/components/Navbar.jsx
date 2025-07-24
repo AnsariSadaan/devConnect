@@ -47,6 +47,11 @@ const Navbar = () => {
                         <li><Link to={'/connections'}>Connections</Link></li>
                         <li><Link to={'/requests'}>Requests</Link></li>
                         <li><Link to={'/premium'}>Premium</Link></li>
+                        <li><Link to={'/privacy-policy'}>Privacy Policy</Link></li>
+                        <li><Link to={'/terms'}>Terms and Condition</Link></li>
+                        <li><Link to={'/cancellation'}>Cancellation</Link></li>
+                        <li><Link to={'/shipping'}>shipping</Link></li>
+                        <li><Link to={'/contact'}>Contact Us</Link></li>
                         <li><Link onClick={handleLogout}>Logout</Link></li>
                     </ul>
                 </div>
