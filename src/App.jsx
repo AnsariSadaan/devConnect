@@ -27,12 +27,12 @@ function App() {
               <Route path="/connections" element={<Connections />} />
               <Route path="/requests" element={<Requests />} />
               <Route path="/premium" element={<Premium />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />}/>
-              <Route path="/terms" element={<TermsAndCondition />} />
-              <Route path="/cancellation" element={<CancellationAndRefund />} />
-              <Route path="/shipping" element={<ShippingAndDelivery />} />
-              <Route path="/contact" element={<ContactUs />} />
             </Route>
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsAndCondition />} />
+            <Route path="/cancellation" element={<CancellationAndRefund />} />
+            <Route path="/shipping" element={<ShippingAndDelivery />} />
+            <Route path="/contact" element={<ContactUs />} />
           </Routes>
         </BrowserRouter>
       </Provider>
