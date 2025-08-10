@@ -135,7 +135,14 @@ to stop or kill (kill -9 id(1234))
 # RazorPay Payment Gateway Integration
     - Signup on Razorpay & complete KYC 
     - created a ui for premium page
-    - createing an api for payment 
+    - createing an api for payment in backend 
+    - Initialized razorpay in utils
+    - creating order on razorpay 
+    - created schema and model
+    - also added key and id in env
+    - save the api in payment collection
+    - make the api dynamic 
+
 # need to make some pages
 privacy policy 
 terms and service 
