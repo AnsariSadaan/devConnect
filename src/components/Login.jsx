@@ -23,7 +23,7 @@ const Login = () => {
                 password,
             }, { withCredentials: true })
             dispatch(addUser(response?.data?.data));
-            navigate('/');
+            navigate('/feed');
         } catch (error) {
             setError(error?.response?.data?.message);
         }
