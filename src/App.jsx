@@ -21,9 +21,9 @@ function App() {
         <BrowserRouter basename="/">
           <Routes>
             <Route path="/" element={<Body />}>
-              <Route index path="/login" element={<Login />} />
-              <Route path="/feed" element={<Feed />} />
+              <Route index element={<Navigate to="/login" />} /> {/* redirect */}
               <Route path="/login" element={<Login />} />
+              <Route path="/feed" element={<Feed />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/connections" element={<Connections />} />
               <Route path="/requests" element={<Requests />} />
