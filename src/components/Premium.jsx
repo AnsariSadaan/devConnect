@@ -6,7 +6,7 @@ const Premium = () => {
 
     const paymentHandle = async (type)=> {
         try {
-            const order = await axios.post('http://localhost:5000/api/payment/create', 
+            const order = await axios.post(BASE_URL + '/payment/create', 
             { membershipType: type }, 
             { withCredentials: true, }
             );
