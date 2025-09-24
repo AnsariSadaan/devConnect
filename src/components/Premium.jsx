@@ -1,24 +1,34 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { BASE_URL } from '../utils/constants'
 import axios from 'axios';
 
 const Premium = () => {
+    const [isUserPremium, setIsUserPremium] = useState(false)
+    const verfyPremiumUser = async () => {
+        const response = await axios.get(BASE_URL + "/premium/verify", {
+            withCredentials: true,
+        });
 
-    const paymentHandle = async (type)=> {
+        if (response.data.isPremium) {
+            setIsUserPremium(true);
+        }
+    }
+
+    const paymentHandle = async (type) => {
         try {
-            const order = await axios.post(BASE_URL + '/payment/create', 
-            { membershipType: type }, 
-            { withCredentials: true, }
+            const order = await axios.post(BASE_URL + '/payment/create',
+                { membershipType: type },
+                { withCredentials: true, }
             );
 
-            const {amount, keyId, currency, notes, orderId} = order.data.data;
+            const { amount, keyId, currency, notes, orderId } = order.data.data;
             const options = {
-                key: keyId, 
-                amount, 
+                key: keyId,
+                amount,
                 currency,
                 name: 'Dev Connect',
                 description: 'Connect to other developers',
-                order_id: orderId, 
+                order_id: orderId,
                 prefill: {
                     name: notes.firstName + " " + notes.lastName,
                     email: notes.emailId,
@@ -27,6 +37,7 @@ const Premium = () => {
                 theme: {
                     color: '#F37254'
                 },
+                handler: verfyPremiumUser
             };
             console.log(options);
             const rzp = new window.Razorpay(options);
@@ -35,10 +46,11 @@ const Premium = () => {
         } catch (error) {
             console.log(error.message);
         }
-    } 
+    }
 
-    return (
-        <div className='m-10'>
+    return isUserPremium ? (
+        "You're already a premium user") : 
+        (<div className='m-10'>
             <div className="flex w-full">
                 <div className="card bg-base-300 rounded-box grid h-80 grow place-items-center">
                     <h1 className='font-bold text-3xl'>Silver MemberShip</h1>
