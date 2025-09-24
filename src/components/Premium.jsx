@@ -1,9 +1,12 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { BASE_URL } from '../utils/constants'
 import axios from 'axios';
 
 const Premium = () => {
     const [isUserPremium, setIsUserPremium] = useState(false)
+    useEffect(() => {
+        verfyPremiumUser();
+    }, [])
     const verfyPremiumUser = async () => {
         const response = await axios.get(BASE_URL + "/premium/verify", {
             withCredentials: true,
@@ -49,7 +52,7 @@ const Premium = () => {
     }
 
     return isUserPremium ? (
-        "You're already a premium user") : 
+        "You're already a premium user") :
         (<div className='m-10'>
             <div className="flex w-full">
                 <div className="card bg-base-300 rounded-box grid h-80 grow place-items-center">
@@ -75,7 +78,7 @@ const Premium = () => {
                 </div>
             </div>
         </div>
-    )
+        )
 }
 
 export default Premium
