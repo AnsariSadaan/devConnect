@@ -23,7 +23,7 @@ const Navbar = () => {
     return (
         <div className="navbar bg-base-300 shadow-sm">
             <div className="flex-1">
-                <Link to={"/"} className="btn btn-ghost text-xl">DevConnect</Link>
+                <Link to={"/feed"} className="btn btn-ghost text-xl">DevConnect</Link>
             </div>
             {user && (<div className="flex gap-2 items-center">
                 <div className='form-control item-center px-4 text-base'>Welcome, <span className="ml-1 font-medium">{user.firstName || 'User'}</span></div>
