@@ -13,6 +13,7 @@ import TermsAndCondition from "./components/policy/TermsAndCondition"
 import CancellationAndRefund from "./components/policy/CancellationAndRefund"
 import ShippingAndDelivery from "./components/policy/ShippingAndDelivery"
 import ContactUs from "./components/policy/ContactUs"
+import Chat from "./components/Chat"
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
               <Route path="/connections" element={<Connections />} />
               <Route path="/requests" element={<Requests />} />
               <Route path="/premium" element={<Premium />} />
+              <Route path="/chat/:targetUserId" element={<Chat />} />
             </Route>
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsAndCondition />} />
