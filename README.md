@@ -36,11 +36,12 @@
 aws notes
 deployment 
 signup on aws 
+choose ec2 - elastic compute :- Amazon EC2 allows you to create virtual machines, or instances, that run on the AWS Cloud
 launch instance 
 create key value pair secret key 
 on git bash => chmod 400 devConnect-secret.pem
 connected to the ubuntu machine using => ssh -i "devConnect-secret.pem" ubuntu@ec2-51-21-167-60.eu-north-1.compute.amazonaws.com
-installed node on ubuntu 
+installed node on ubuntu correct version which is installed in your system 
 clone backend and frontend 
  - go to frontend path 
     - do npm i 
@@ -65,7 +66,9 @@ clone backend and frontend
     - pm2 stop service_name
     - pm2 delete service_name
     - pm2 start npm --name servicename -- start
+    - pm2 start npm --name "Devbackend" --start
     - config nginx 
+    - sudo nano /etc/nginx/site-available/default
     - restart the nginx -> sudo systemctl restart nginx 
 
 to check which port is running (sudo lsof -i :4000)
@@ -85,7 +88,7 @@ to stop or kill (kill -9 id(1234))
     server_name 13.60.196.16;
 
     location /api/ {
-        proxy_pass http://localhost:4000/;
+        proxy_pass http://localhost:5000/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -101,7 +104,7 @@ to stop or kill (kill -9 id(1234))
     - wait for sometime till nameserver are updated 
     - DNS record : A devConnect.info  13.60.222.228
     - enable ssl for website from browser to cloudflare 
-    - homw work to do from cloudflare to my origin server
+    - home work to do from cloudflare to my origin server (full ssl)
 
 
 # Sending email via SES
@@ -142,6 +145,7 @@ to stop or kill (kill -9 id(1234))
     - also added key and id in env
     - save the api in payment collection
     - make the api dynamic 
+    - setup razorpay webhook 
 
 # need to make some pages
 privacy policy 
@@ -151,3 +155,5 @@ refund policy
 team
 
 
+# Real Time chat Using Websocket(socket.io)
+ - npm i socket.io 
