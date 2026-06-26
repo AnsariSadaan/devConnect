@@ -10,6 +10,7 @@ import cookieParser from 'cookie-parser';
 import './utils/Cronjob.js';
 import http from 'http';
 import initializeSocket from './config/socketConnection.js';
+import errorHandler from './middlewares/error.middleware.js';
 
 const app = express();
 
@@ -34,23 +35,8 @@ app.use('/api', chatRouter);
 
 export const server = http.createServer(app);
 initializeSocket(server);
+
 // Global Error Handler
-app.use((err, req, res, next) => {
-    const statusCode = err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    // ADDED A CHECK TO AVOID DUPLICATE RESPONSE
-    if (res.headersSent) {
-        return next(err);
-    }
-
-    res.status(statusCode).json({
-        statusCode,
-        success: false,
-        message,
-        errors: err.errors || [],
-        stack: process.env.NODE_ENV === "production" ? undefined : err.stack
-    });
-});
+app.use(errorHandler);
 
 export default app;
