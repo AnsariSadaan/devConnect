@@ -1,28 +1,46 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const messageSchema = new mongoose.Schema({
-  senderId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-  text: {
-    type: String,
-    required: true,
-  }
-}, { timestamps: true });
-
-const chatSchema = new mongoose.Schema({
-  participants: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+const chatSchema = new mongoose.Schema(
+  {
+    participants: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        }
+      ],
+      validate: {
+        validator: (arr) => arr.length === 2,
+        message: "Chat must contain exactly 2 participants"
+      }
     },
-  ],
-  messages: [messageSchema],
-})
 
+    lastMessage: {
+      type: String,
+    },
+    
+    lastMessageAt: {
+      type: Date,
+    },
 
-export const Chat = mongoose.model('chat', chatSchema);
+    lastMessageSender: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
+chatSchema.index({
+  participants: 1,
+});
+
+chatSchema.pre("save", function (next) {
+  this.participants.sort();
+  next();
+});
+
+export const Chat = mongoose.model("Chat", chatSchema);
