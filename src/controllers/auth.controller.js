@@ -7,75 +7,99 @@ import bcrypt from 'bcryptjs';
 
 const Signup = AsyncHandler(async (req, res) => {
 
-    // validation of data
-    validateSignUpData(req);
+  // validation of data
+  validateSignUpData(req);
 
-    const { firstName, lastName, emailId, password } = req.body;
+  const allowedFields = [
+    "firstName",
+    "lastName",
+    "emailId",
+    "password",
+    "age",
+    "gender",
+    "about",
+    "skills",
+    "photoUrl",
+    "experience",
+    "githubUrl",
+    "linkedinUrl",
+    "portfolioUrl",
+    "location",
+    "currentCompany",
+  ];
 
-    //encrypt the password
-    const passwordHash = await bcrypt.hash(password, 10);
+  const userData = {};
 
-    //create new user 
-    const user = new User({
-        firstName,
-        lastName,
-        emailId,
-        password: passwordHash,
-    })
-
-
-    const savedUser = await user.save();
-    if (!savedUser) {
-        throw new ApiError(500, "Something went wrong while registering user");
+  allowedFields.forEach(field => {
+    if (req.body[field] !== undefined) {
+      userData[field] = req.body[field];
     }
-    const token = await savedUser.getJWT();
-    res.cookie("token", token, {
-        expires: new Date(Date.now() + 8 * 3600000)
-    });
+  });
 
-    const userResponse = savedUser.toObject();
-    delete userResponse.password;
+  //encrypt the password
+  // const passwordHash = await bcrypt.hash(password, 10);
 
-    return res.status(201).json(new ApiResponse(201, userResponse, "User Added successfully!"));
+  //create new user 
+  const user = new User(userData)
+
+
+  const savedUser = await user.save();
+  if (!savedUser) {
+    throw new ApiError(500, "Something went wrong while registering user");
+  }
+  const token = await savedUser.getJWT();
+  res.cookie("token", token, {
+    expires: new Date(Date.now() + 8 * 3600000)
+  });
+
+  const userResponse = savedUser.toObject();
+  delete userResponse.password;
+
+  return res.status(201).json(new ApiResponse(201, userResponse, "User Added successfully!"));
 })
 
 
 const Login = AsyncHandler(async (req, res) => {
-    const { emailId, password } = req.body;
+    
+  const { emailId, password } = req.body;
+  const user = await User.findOne({ emailId }).select("+password");
 
-    const user = await User.findOne({ emailId });
-    if (!user) {
-        throw new ApiError(401, "Invalid Credentials!");
-    }
+  if (!user) {
+    throw new ApiError(401, "Invalid Credentials!");
+  }
 
-    const isPasswordValid = await user.validatePassword(password);
-    if (!isPasswordValid) {
-        throw new ApiError(401, "Invalid Credentials!");
-    }
+  const isPasswordValid = await user.validatePassword(password);
 
-    const token = await user.getJWT();
+  console.log("Password Valid:", isPasswordValid);
 
-    res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        expires: new Date(Date.now() + 8 * 3600000),
-    });
+  if (!isPasswordValid) {
+    throw new ApiError(401, "Invalid Credentials!");
+  }
 
-    const userResponse = user.toObject();
-    delete userResponse.password;
+  const token = await user.getJWT();
 
-    return res.status(200).json(
-        new ApiResponse(200, userResponse, "Login Successfully!")
-    );
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    expires: new Date(Date.now() + 8 * 3600000),
+  });
+
+  const userResponse = user.toObject();
+  delete userResponse.password;
+
+  return res.status(200).json(
+    new ApiResponse(200, userResponse, "Login Successfully!")
+  );
 });
 
 
 const Logout = AsyncHandler(async (req, res)=> {
-    res.cookie("token", null, {
-        expires: new Date(Date.now()),
-    }) 
-    return res.status(200).json(new ApiResponse(200, null, "Logout Successfully!"))
+  
+  res.cookie("token", null, {
+    expires: new Date(Date.now()),
+  }) 
+  return res.status(200).json(new ApiResponse(200, null, "Logout Successfully!"))
 })
 
 export { Signup, Login, Logout }
