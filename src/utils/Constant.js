@@ -1,2 +1,2 @@
-export const DB_NAME = "devConnect"
-export const DB_CONNECT = "mongodb+srv://admin:admin123@cluster0.fxkbz.mongodb.net"
+export const DB_NAME = process.env.DB_NAME;
+export const DB_CONNECT = process.env.MONGODB_URL;
