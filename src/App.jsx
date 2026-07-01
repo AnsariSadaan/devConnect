@@ -29,7 +29,7 @@ function App() {
               <Route path="/connections" element={<Connections />} />
               <Route path="/requests" element={<Requests />} />
               <Route path="/premium" element={<Premium />} />
-              <Route path="/chat/:targetUserId" element={<Chat />} />
+              <Route path="/chat" element={<Chat />} />
             </Route>
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsAndCondition />} />
