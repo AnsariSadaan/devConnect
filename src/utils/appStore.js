@@ -3,14 +3,16 @@ import userReducer from "./userSlice";
 import feedReducer from './feedSlice';
 import connectionReducer from './connectionSlice';
 import requestReducer from './requestSlice';
+import chatReducer from './chatSlice';
 
 const appStore = configureStore({
-    reducer: {
-        user: userReducer,
-        feed: feedReducer,
-        connections: connectionReducer,
-        requests: requestReducer,
-    }
+  reducer: {
+    user: userReducer,
+    feed: feedReducer,
+    connections: connectionReducer,
+    requests: requestReducer,
+    chat: chatReducer,
+  }
 });
 
 export default appStore;
