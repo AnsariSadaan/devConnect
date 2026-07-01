@@ -1,5 +1,6 @@
 import { ConnectionRequest } from "../models/connectionRequest.model.js";
 import { User } from "../models/user.model.js";
+import { Chat } from '../models/chat.model.js';
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { AsyncHandler } from "../utils/AsyncHandler.js";
@@ -71,12 +72,45 @@ const userConnection = AsyncHandler(async (req, res) => {
 
   // console.log(connectionRequests);
   if (!connectionRequests || connectionRequests.length === 0) {
-    throw new ApiError(404, "No connections found");
+    // Return empty array instead of throwing error
+    return res.status(200).json(new ApiResponse(200, [], "No connections found"));
   }
 
-  const data = connectionRequests.map((row) => {
-    return row.fromUserId._id.toString() === loggedInUser._id.toString() ? row.toUserId : row.fromUserId;
-  });
+  const data = await Promise.all(
+    connectionRequests.map(async (row) => {
+      // Get the other user
+      const otherUser = row.fromUserId._id.toString() === loggedInUser._id.toString() 
+        ? row.toUserId 
+        : row.fromUserId;
+      
+      // Find or create chat for this connection
+      let chat = await Chat.findOne({
+        participants: { $all: [loggedInUser._id, otherUser._id] }
+      });
+      
+      // If chat doesn't exist, create it
+      if (!chat) {
+        chat = new Chat({
+          participants: [loggedInUser._id, otherUser._id],
+        });
+        await chat.save();
+      }
+      
+      // Return user data with chatId
+      return {
+        _id: otherUser._id,
+        firstName: otherUser.firstName,
+        lastName: otherUser.lastName,
+        photoUrl: otherUser.photoUrl,
+        about: otherUser.about,
+        skills: otherUser.skills,
+        isOnline: otherUser.isOnline,
+        lastSeen: otherUser.lastSeen,
+        chatId: chat._id.toString(), // Add chatId to the response
+      };
+    })
+  );
+
   return res.status(200).json(new ApiResponse(200, data, "Connection fetched successfully"));
 })
 

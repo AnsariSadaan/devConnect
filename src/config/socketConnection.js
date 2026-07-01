@@ -36,26 +36,89 @@ const initializeSocket = (server) => {
     
     //Handle events
     // JOIN CHAT
-    socket.on("joinChat", ({ firstName, userId, targetUserId }) => {
-      const roomId = getSecretRoomId(userId, targetUserId);
-      console.log(`${firstName} Joined Room: ${roomId}`);
-      socket.join(roomId);
+    socket.on("joinChat", async  ({userId, chatId, firstName }) => {
+
+      try {
+        const chat = await Chat.findById(chatId);
+
+        if(!chat) {
+          console.error(`Chat ${chatId} not found`);
+          return;
+        }
+
+        const targetUserId = chat.participants.find(
+          id => id.toString() !== userId.toString()
+        );
+
+        if (!targetUserId) {
+          console.error(`No other participant found in chat ${chatId}`);
+          return;
+        }
+
+        const roomId = getSecretRoomId(
+          userId,
+          targetUserId.toString()
+        );
+
+        socket.join(roomId);
+        socket.currentRoom = roomId;
+        socket.currentChatId = chatId;
+        console.log(`${firstName} (${userId}) Joined Room: ${roomId} for Chat: ${chatId}`);
+      } catch (error) {
+        console.error("Error joining chat:", error);
+      }
     });
 
-    socket.on("sendMessage", async ({ firstName, lastName, userId, targetUserId, text, replyTo = null, }) => {
-      // save message 
+    socket.on("sendMessage", async ({ userId, chatId, text, replyTo = null}) => {
       try {
-        const roomId = getSecretRoomId(userId, targetUserId);
-        console.log(firstName + " " + text);
-        let chat = await Chat.findOne({
-          participants: { $all : [userId, targetUserId]},
-          
-        });
+
+        // Validate required fields
+        if (!userId) {
+          console.error("Missing userId");
+          socket.emit("messageError", { error: "Missing userId" });
+          return;
+        }
+
+        if (!chatId) {
+          console.error("Missing chatId");
+          socket.emit("messageError", { error: "Missing chatId" });
+          return;
+        }
+
+        if (!text || !text.trim()) {
+          console.error("Missing text");
+          socket.emit("messageError", { error: "Missing message text" });
+          return;
+        }
+
+        const chat = await Chat.findById(chatId);
+
+        // Find the chat
         if (!chat) {
-          chat = new Chat({
-            participants: [userId, targetUserId],
-            // messages: [],
-          }); 
+          console.error(`Chat ${chatId} not found`);
+          socket.emit("messageError", { error: "Chat not found" });
+          return;
+        }
+
+        // Find the other participant
+        const targetUserId = chat.participants.find(
+          id => id.toString() !== userId.toString()
+        );
+
+        if (!targetUserId) {
+          console.error(`No other participant found in chat ${chatId}`);
+          socket.emit("messageError", { error: "No other participant found" });
+          return;
+        }
+
+        const roomId =getSecretRoomId(userId, targetUserId.toString());
+        console.log(`Sending message in room: ${roomId}`);
+        console.log(`From: ${userId}, To: ${targetUserId}`);
+
+        // Make sure the sender is in the room
+        if (!socket.rooms.has(roomId)) {
+          socket.join(roomId);
+          console.log(`Added sender ${userId} to room: ${roomId}`);
         }
 
         const message = await Message.create({
@@ -66,119 +129,132 @@ const initializeSocket = (server) => {
           status: "sent",
         });
 
-        chat.lastMessage = text;
+        // Update chat with last message
+        chat.lastMessage = message._id;
         chat.lastMessageAt = new Date();
         chat.lastMessageSender = userId;
-        
         await chat.save();
 
-        io.to(roomId).emit(
-          "messageReceived",
-          message
+        const populatedMessage = await Message.findById(message._id).populate(
+          "senderId",
+          "firstName lastName photoUrl"
         );
 
-        // Mark delivered immediately
-        await Message.findByIdAndUpdate(
-          message._id,
-          {
-            status: "delivered",
-          }
-        );
+        // Format message for client
+        const formattedMessage = {
+          _id: populatedMessage._id,
+          chatId: chat._id.toString(),
+          senderId: populatedMessage.senderId._id.toString(),
+          receiverId: targetUserId.toString(),
+          firstName: populatedMessage.senderId.firstName,
+          lastName: populatedMessage.senderId.lastName,
+          photoUrl: populatedMessage.senderId.photoUrl,
+          text: populatedMessage.text,
+          createdAt: populatedMessage.createdAt,
+          status: "delivered",
+        };
 
-        // chat.messages.push({
-        //   senderId: userId,
-        //   text
-        // })
+        await Message.findByIdAndUpdate(message._id, {
+          status: "delivered",
+        });
 
-        // io.to(roomId).emit("messageReceived", { firstName, lastName, text, createdAt: new Date().toISOString(), });
+        // IMPORTANT: Emit only to the specific room
+        io.to(roomId).emit("messageReceived", formattedMessage);
+        console.log(`Message sent to room: ${roomId}`);
+
 
       } catch (error) {
-        console.log(error)
+         console.error("Error sending message:", error);
+        socket.emit("messageError", {error: "Failed to send message: " + error.message });
       }
     });
 
     // Message seen
-    socket.on(
-      "messageSeen",
-      async ({ chatId, userId }) => {
-        try {
-          await Message.updateMany(
-            {
-              chatId,
-              senderId: {
-                $ne: userId,
-              },
-              status: {
-                $ne: "seen",
-              },
-            },
-            {
-              status: "seen",
-            }
-          );
+    socket.on("messageSeen",async ({ chatId, userId }) => {
+      
+      try {
+        await Message.updateMany({
+          chatId,
+          senderId: {
+            $ne: userId,
+          },
+          status: {
+            $ne: "seen",
+          },
+        },
+          {
+            status: "seen",
+          }
+        );
 
-          io.emit("messagesSeen", {
-            chatId,
-          });
-        } catch (error) {
-          console.log(error);
+        const chat = await Chat.findById(chatId);
+        if (chat) {
+          const otherUserId = chat.participants.find(
+            p => p.toString() !== userId.toString()
+          );
+          
+          if (otherUserId) {
+            const roomId = getSecretRoomId(userId, otherUserId.toString());
+            io.to(roomId).emit("messagesSeen", { chatId });
+          }
         }
+      } catch (error) {
+        console.error("Error marking messages as seen:", error);
       }
-    );
+    });
 
     // typing
-    socket.on(
-      "typing",
-      ({ userId, targetUserId }) => {
-        const roomId = getSecretRoomId(
-          userId,
-          targetUserId
+    socket.on("typing", async ({ userId, chatId }) => {
+      
+      try {
+      
+        const chat = await Chat.findById(chatId);
+        if (!chat) return;
+
+        const targetUserId = chat.participants.find(
+          id => id.toString() !== userId.toString()
         );
 
-        socket
-          .to(roomId)
-          .emit("userTyping", {
-            userId,
-          });
+        if (targetUserId) {
+          const roomId = getSecretRoomId(userId, targetUserId.toString());
+          socket.to(roomId).emit("userTyping", { userId, chatId });
+        }
+      } catch (error) {
+        console.error("Error handling typing:", error);
       }
-    );
+    });
 
-    socket.on(
-      "stopTyping",
-      ({ userId, targetUserId }) => {
-        const roomId = getSecretRoomId(
-          userId,
-          targetUserId
+    socket.on("stopTyping", async ({ userId, chatId }) => {
+      
+      try {
+      
+        const chat = await Chat.findById(chatId);
+        if (!chat) return;
+
+        const targetUserId = chat.participants.find(
+          id => id.toString() !== userId.toString()
         );
 
-        socket
-          .to(roomId)
-          .emit("userStoppedTyping", {
-            userId,
-          });
+        if (targetUserId) {
+          const roomId = getSecretRoomId(userId, targetUserId.toString());
+          socket.to(roomId).emit("userStoppedTyping", { userId, chatId });
+        }
+      } catch (error) {
+        console.error("Error handling stop typing:", error);
       }
-    );
-
-
-    // socket.on("disconnect", () => {
-    //   // console.log("❌ Client disconnected:");
-    // });
+    });
 
     socket.on("disconnect", async () => {
       try {
         if (socket.userId) {
-          await User.findByIdAndUpdate(
-            socket.userId,
-            {
-              isOnline: false,
-              lastSeen: new Date(),
-            }
-          );
+          console.log(`User ${socket.userId} disconnected`);
+          await User.findByIdAndUpdate(socket.userId, {
+            isOnline: false,
+            lastSeen: new Date(),
+          });
         }
-
-        console.log("User disconnected");
       } catch (error) {
-        console.log(error);
+        console.error("Error during disconnect:", error);
       }
     });
   });
