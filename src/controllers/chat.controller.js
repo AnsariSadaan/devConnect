@@ -78,7 +78,7 @@ const getLastMessagesForConnections = AsyncHandler(async (req, res) => {
       });
       
       if (!chat) {
-        // lastMessagesMap[otherUserId.toString()] = null;
+        lastMessagesMap[chat._id.toString()] = null;
         return;
       }
       
@@ -88,7 +88,7 @@ const getLastMessagesForConnections = AsyncHandler(async (req, res) => {
       
       if (lastMessage) {
         // Format the message to match frontend expectations
-        lastMessagesMap[otherUserId.toString()] = {
+        lastMessagesMap[chat._id.toString()] = {
           _id: lastMessage._id,
           chatId: chat._id.toString(),
           senderId: lastMessage.senderId._id.toString(),
@@ -100,7 +100,7 @@ const getLastMessagesForConnections = AsyncHandler(async (req, res) => {
           status: lastMessage.status,
         };
       } else {
-        lastMessagesMap[otherUserId.toString()] = null;
+        lastMessagesMap[chat._id.toString()] = null;
       }
     })
   );
