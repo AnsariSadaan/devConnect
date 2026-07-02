@@ -96,7 +96,6 @@
       updateLastMessage: (state, action) => {
   			const { chatId, message } = action.payload;
   			if (chatId) {
-  				console.log(`Updating last message for ${chatId}:`, message);
   			  state.lastMessages[chatId] = message;
   			}
   		},
