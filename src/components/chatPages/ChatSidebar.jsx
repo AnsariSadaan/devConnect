@@ -32,7 +32,7 @@ const ChatSidebar = () => {
 
         // After fetching connections, fetch their last messages
         if (connectionsList && connectionsList.length > 0) {
-          await fetchLastMessages(connectionsList);
+          await fetchLastMessages();
         }
       } catch (err) {
         console.error("Error fetching connections:", err);
@@ -62,8 +62,6 @@ const ChatSidebar = () => {
           
           const message = data.lastMessages[chatId];
           if (message) {
-            
-            const connection = connections?.find(conn => conn._id === userId);
             dispatch(updateLastMessage({
               chatId: chatId,
               message: message
@@ -198,9 +196,6 @@ const ChatSidebar = () => {
             const chatId = connection.chatId;
             const unread = unreadMessages[chatId] || 0;
             const lastMessage = lastMessages[chatId];
-
-            // Debug: Log each connection's last message
-            console.log(`Connection ${connection.firstName} (chatId: ${chatId}) lastMessage:`, lastMessage);
             
             return (
               <div

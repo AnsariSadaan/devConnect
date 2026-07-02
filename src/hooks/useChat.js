@@ -112,13 +112,22 @@ const useChat = () => {
 
       // Check if the message belongs to the currently selected user
       if (message.chatId === selectedChatId) {
+
         // It's a message from the selected user - add to current chat
         dispatch(addMessage(message));
-      } else {
-        // It's a message from someone else - increment unread count
-        dispatch(incrementUnread({
+        dispatch(updateLastMessage({
           chatId: message.chatId,
           message
+        }));
+      } else {
+
+        dispatch(updateLastMessage({
+          chatId: message.chatId,
+          message
+        }));
+        // It's a message from someone else - increment unread count
+        dispatch(incrementUnread({
+          chatId: message.chatId
         }));
       }
     };
