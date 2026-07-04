@@ -52,7 +52,7 @@ const userRequestsReceived = AsyncHandler(async (req, res) => {
   }).populate("fromUserId", USER_SAFE_DATA);
 
   if (!connectionrequests || connectionrequests.length === 0) {
-    throw new ApiError(404, "No connection requests found")
+    return res.status(200).json(new ApiError(200, connectionrequests, "No connection requests found"))
   }
 
   return res.status(200).json(new ApiResponse(200, connectionrequests, "Data Fetched Successfully!"))
