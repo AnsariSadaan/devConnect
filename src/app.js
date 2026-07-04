@@ -17,6 +17,8 @@ const app = express();
 app.use(cors({
     origin: [process.env.CLIENT_URL, "*"],
     credentials: true,
+    // ✅ Allow rate limit headers to be exposed
+    exposedHeaders: ['RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset']
 }));
 
 

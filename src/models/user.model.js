@@ -139,6 +139,11 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    refreshToken: {
+      type: String,
+      default: null,
+      select: false
+    }
   },
   { 
     timestamps: true 
@@ -155,14 +160,35 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-userSchema.methods.getJWT = async function () {
-  
-  const user = this;
-  const token = jwt.sign({_id: user._id}, process.env.JWT_SECRET, {
-    expiresIn: process.env.ExpiresIn
-  });
-  return token;
+// access and refresh token
+userSchema.methods.generateAccessToken = function () {
+
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET not configured');
+
+  return jwt.sign(
+    { _id: this._id },
+      process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_EXPIRES
+    }
+  );
 };
+
+userSchema.methods.generateRefreshToken = function () {
+
+  const secret = process.env.JWT_REFRESH_SECRET;
+    if (!secret) throw new Error('JWT_REFRESH_SECRET not configured');
+
+  return jwt.sign(
+    { _id: this._id },
+      process.env.JWT_REFRESH_SECRET,
+    {
+      expiresIn: process.env.JWT_REFRESH_EXPIRES
+    }
+  );
+};
+
 
 userSchema.methods.validatePassword = async function (passwordInputByUser) {
 
