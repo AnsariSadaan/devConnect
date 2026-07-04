@@ -1,11 +1,19 @@
 import { Router } from "express";
-import { Login, Logout, Signup } from "../controllers/auth.controller.js";
+import { Login, Logout, Signup, refreshAccessToken } from "../controllers/auth.controller.js";
+import { verifyJwt } from "../middlewares/auth.middleware.js";
+import { 
+  authLimiter, 
+  sensitiveLimiter,
+  generalLimiter 
+} from "../utils/rateLimiter.js";
+
 const router = Router();
 
 
-router.route('/signup').post(Signup);
-router.route('/login').post(Login);
-router.route('/logout').post(Logout);
+router.route('/signup').post(authLimiter, Signup);
+router.route('/login').post(authLimiter, Login);
+router.route("/refresh-token").post(authLimiter, refreshAccessToken);
+router.route('/logout').post(authLimiter, verifyJwt, Logout);
 
 
 export default router;
