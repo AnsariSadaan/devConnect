@@ -1,8 +1,7 @@
-import axios from 'axios'
+import api from '../utils/axios'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { addConnections } from '../utils/connectionSlice.js';
-import { BASE_URL } from '../utils/constants.js';
 import { Link } from 'react-router-dom';
 
 const Connections = () => {
@@ -13,7 +12,7 @@ const Connections = () => {
   const fetchConnections = async () => {
     setError('');
     try {
-      const res = await axios.get(BASE_URL + "/connections", {
+      const res = await api.get("/connections", {
         withCredentials: true,
       });
       dispatch(addConnections(res.data.data));

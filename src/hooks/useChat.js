@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import api from "../utils/axios";
 import { useDispatch, useSelector } from "react-redux";
-import { BASE_URL } from "../utils/constants";
 import { createSocketConnection } from "../utils/socket";
 
 import {
@@ -61,7 +60,7 @@ const useChat = () => {
     const fetchMessages = async () => {
       try {
 
-        const res = await axios.get(`${BASE_URL}/chat/${selectedChatId}`,
+        const res = await api.get(`/chat/${selectedChatId}`,
           {
             withCredentials: true,
           }

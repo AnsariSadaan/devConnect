@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useMemo }  from "react";
 import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
+import api from "../../utils/axios";
 import { addConnections } from "../../utils/connectionSlice";
 import { setSelectedUser, clearUnread, updateLastMessage  } from "../../utils/chatSlice";
-import { BASE_URL } from "../../utils/constants";
 
 const ChatSidebar = () => {
   const dispatch = useDispatch();
@@ -23,7 +22,7 @@ const ChatSidebar = () => {
     const fetchConnections = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(BASE_URL + "/connections", {
+        const res = await api.get("/connections", {
           withCredentials: true,
         });
 
@@ -49,8 +48,7 @@ const ChatSidebar = () => {
     
     try {
     
-      const res = await axios.get(
-        BASE_URL + "/chat/last-messages/all",
+      const res = await api.get("/chat/last-messages/all",
         { withCredentials: true }
       );
 

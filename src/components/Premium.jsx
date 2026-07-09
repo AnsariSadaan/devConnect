@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { BASE_URL } from '../utils/constants'
-import axios from 'axios';
+import api from '../utils/axios';
 
 const Premium = () => {
     const [isUserPremium, setIsUserPremium] = useState(false)
@@ -8,7 +7,7 @@ const Premium = () => {
         verfyPremiumUser();
     }, [])
     const verfyPremiumUser = async () => {
-        const response = await axios.get(BASE_URL + "/premium/verify", {
+        const response = await api.get("/premium/verify", {
             withCredentials: true,
         });
 
@@ -19,7 +18,7 @@ const Premium = () => {
 
     const paymentHandle = async (type) => {
         try {
-            const order = await axios.post(BASE_URL + '/payment/create',
+            const order = await api.post('/payment/create',
                 { membershipType: type },
                 { withCredentials: true, }
             );
