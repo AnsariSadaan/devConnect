@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import validator from 'validator';
 
 const connectionSchema = new mongoose.Schema(
   {
@@ -8,12 +7,17 @@ const connectionSchema = new mongoose.Schema(
         {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
+          required: true,
         }
       ],
       validate: {
-        validator: (arr) => arr.length === 2,
+        validator(users) {
+          if (users.length !== 2) return false;
+
+          return users[0].toString() !== users[1].toString();
+        },
         message: "Connection must contain exactly 2 users"
-      }
+      },
     },
 
     connectedAt: {
@@ -26,14 +30,11 @@ const connectionSchema = new mongoose.Schema(
   }
 );
 
-connectionSchema.index(
-  {
-    users: 1,
-  }
-);
 
 connectionSchema.pre("save", function (next) {
-  this.users.sort();
+  this.users.sort((a, b) =>
+    a.toString().localeCompare(b.toString())
+  );
   next();
 });
 

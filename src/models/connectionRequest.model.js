@@ -20,7 +20,11 @@ const connectionRequestSchema = new mongoose.Schema({
       values: ["ignored", "interested", "accepted", "rejected"],
       message: `{VALUE} is incorrect status type`,
     },
-  }
+  },
+  ignoredUntil: {
+    type: Date,
+    default: null,
+  },
 }, { timestamps: true });
 
 
@@ -33,12 +37,22 @@ connectionRequestSchema.index(
     unique: true,
   }
 );
-connectionRequestSchema.pre("save", function (next) {
-  const connectionRequest = this;
-  // Check if the fromUserId is same as toUserId
-  if(connectionRequest.fromUserId.equals(connectionRequest.toUserId)){
-    throw new ApiError(403, "cannot send connection request to yourself")
+
+// Index for efficient querying of ignored requests
+connectionRequestSchema.index({ status: 1, ignoredUntil: 1 });
+
+connectionRequestSchema.pre("validate", function (next) {
+  if (this.fromUserId?.equals(this.toUserId)) {
+    return next(
+      new ApiError(403, "You cannot send a connection request to yourself.")
+    );
   }
+
+  // ignoredUntil should exist only for ignored requests
+  if (this.status !== "ignored") {
+    this.ignoredUntil = null;
+  }
+
   next();
 })
 

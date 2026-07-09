@@ -1,102 +1,130 @@
 import { ConnectionRequest } from "../models/connectionRequest.model.js";
+import { Connection } from "../models/connection.model.js";
 import { User } from "../models/user.model.js";
-import { Chat } from '../models/chat.model.js';
+import { Chat } from "../models/chat.model.js";
+
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { AsyncHandler } from "../utils/AsyncHandler.js";
 
-const USER_SAFE_DATA = "firstName lastName photoUrl age gender about skills location currentCompany experience";
+const USER_SAFE_DATA =
+  "firstName lastName photoUrl age gender about skills location currentCompany experience";
 
 const Feed = AsyncHandler(async (req, res) => {
-  
   const loggedInUser = req.user;
+  const now = new Date();
 
-  //find all connection requests involving the logged-in user
-  const sentConnectionrequests = await ConnectionRequest.find({
-    $or: [
-      { fromUserId: loggedInUser._id },
-      { toUserId: loggedInUser._id },
-    ],
-    status: { $in: ["interested", "accepted"] },
+  // Active requests
+  const requests = await ConnectionRequest.find({
+    $and: [
+      {
+        $or: [
+          {
+            fromUserId: loggedInUser._id
+          },
+          {
+            toUserId: loggedInUser._id
+          }
+        ]
+      },
+      {
+        $or: [
+          {
+            status: "interested"
+          },
+          {
+            status: "ignored",
+            ignoredUntil: {
+              $gt: now
+            }
+          }
+        ]
+      }
+    ]
   });
 
-  // exlcude user from feed who have already send request or accpted
-  const excludedUserIds = new Set();
-  sentConnectionrequests.forEach(req => {
-    excludedUserIds.add(req.fromUserId.toString());
-    excludedUserIds.add(req.toUserId.toString());
-  })
+  // Existing connections
+  const connections = await Connection.find({
+    users: loggedInUser._id,
+  });
 
-  //always exclude logged in user 
+  const excludedUserIds = new Set();
+
   excludedUserIds.add(loggedInUser._id.toString());
 
+  // Exclude request users
+  requests.forEach((request) => {
+    excludedUserIds.add(request.fromUserId.toString());
+    excludedUserIds.add(request.toUserId.toString());
+  });
 
-  // fecth users not involved in any existing request or connection 
+  // Exclude connected users
+  connections.forEach((connection) => {
+    connection.users.forEach((userId) => {
+      excludedUserIds.add(userId.toString());
+    });
+  });
+
   const users = await User.find({
-    _id: { $nin: Array.from(excludedUserIds) },
-  }).select(USER_SAFE_DATA)
+    _id: {
+      $nin: [...excludedUserIds],
+    },
+  }).select(USER_SAFE_DATA);
 
-  if (!users) {
-    throw new ApiError(401, "Feeds not found");
-  }
-
-  return res.status(200).json(new ApiResponse(200, users, "feed fetched successfully!"));
-})
+  return res.status(200).json(
+    new ApiResponse(200, users, "Feed fetched successfully."
+    )
+  );
+});
 
 const userRequestsReceived = AsyncHandler(async (req, res) => {
-  
   const loggedInUser = req.user;
-  const connectionrequests = await ConnectionRequest.find({
+
+  const requests = await ConnectionRequest.find({
     toUserId: loggedInUser._id,
     status: "interested",
   }).populate("fromUserId", USER_SAFE_DATA);
 
-  if (!connectionrequests || connectionrequests.length === 0) {
-    return res.status(200).json(new ApiError(200, connectionrequests, "No connection requests found"))
-  }
-
-  return res.status(200).json(new ApiResponse(200, connectionrequests, "Data Fetched Successfully!"))
-})
+  return res.status(200).json(
+    new ApiResponse(200, requests,requests.length  ? "Requests fetched successfully."  : "No requests found.")
+  );
+});
 
 const userConnection = AsyncHandler(async (req, res) => {
-  
   const loggedInUser = req.user;
-  const connectionRequests = await ConnectionRequest.find({
-    $or: [
-      { toUserId: loggedInUser._id, status: "accepted" },
-      { fromUserId: loggedInUser._id, status: "accepted" },
-    ],
-  })
-  .populate("fromUserId", USER_SAFE_DATA)
-  .populate("toUserId", USER_SAFE_DATA);
 
-  // console.log(connectionRequests);
-  if (!connectionRequests || connectionRequests.length === 0) {
-    // Return empty array instead of throwing error
-    return res.status(200).json(new ApiResponse(200, [], "No connections found"));
+  const connections = await Connection.find({
+    users: loggedInUser._id,
+  }).populate("users", USER_SAFE_DATA);
+
+  if (!connections.length) {
+    return res.status(200).json(
+      new ApiResponse(200, [], "No connections found.")
+    );
   }
 
   const data = await Promise.all(
-    connectionRequests.map(async (row) => {
-      // Get the other user
-      const otherUser = row.fromUserId._id.toString() === loggedInUser._id.toString() 
-        ? row.toUserId 
-        : row.fromUserId;
-      
-      // Find or create chat for this connection
+    connections.map(async (connection) => {
+      const otherUser = connection.users.find(
+        (user) =>
+          user._id.toString() !== loggedInUser._id.toString()
+      );
+
       let chat = await Chat.findOne({
-        participants: { $all: [loggedInUser._id, otherUser._id] }
+        participants: {
+          $all: [loggedInUser._id, otherUser._id],
+        },
       });
-      
-      // If chat doesn't exist, create it
+
       if (!chat) {
-        chat = new Chat({
-          participants: [loggedInUser._id, otherUser._id],
+        chat = await Chat.create({
+          participants: [
+            loggedInUser._id,
+            otherUser._id,
+          ],
         });
-        await chat.save();
       }
-      
-      // Return user data with chatId
+
       return {
         _id: otherUser._id,
         firstName: otherUser.firstName,
@@ -104,14 +132,28 @@ const userConnection = AsyncHandler(async (req, res) => {
         photoUrl: otherUser.photoUrl,
         about: otherUser.about,
         skills: otherUser.skills,
+        location: otherUser.location,
+        currentCompany: otherUser.currentCompany,
+        experience: otherUser.experience,
         isOnline: otherUser.isOnline,
         lastSeen: otherUser.lastSeen,
-        chatId: chat._id.toString(), // Add chatId to the response
+        chatId: chat._id,
+        connectedAt: connection.connectedAt,
       };
     })
   );
 
-  return res.status(200).json(new ApiResponse(200, data, "Connection fetched successfully"));
-})
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      data,
+      "Connections fetched successfully."
+    )
+  );
+});
 
-export { Feed, userRequestsReceived, userConnection }
+export {
+  Feed,
+  userRequestsReceived,
+  userConnection,
+};
