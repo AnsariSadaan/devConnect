@@ -32,7 +32,7 @@ const createRateLimiter = (options = {}) => {
 // Now create all limiters using the SAME function
 export const authLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 20,
   // skipSuccessfulRequests: true,
   message: {
     success: false,
