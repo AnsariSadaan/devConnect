@@ -9,7 +9,7 @@ const UserCard = ({ user }) => {
   const dispatch = useDispatch();
   const handleSendRequest = async (status, userId) => {
     try {
-      const res = await api.post(`/request/send/${status}${userId}`, {}, { withCredentials: true })
+      const res = await api.post(`/request/send/${status}/${userId}`, {}, { withCredentials: true })
       dispatch(removeUserFromFeed(userId));
     } catch (error) {
       if (error.response?.status === 409) {
