@@ -57,11 +57,15 @@ const userSchema = new Schema(
     },
     membershipType: {
       type: String,
-      enum: ["monthly", "quarterly", "yearly"],
+      enum: ['silver', 'gold', null],
+      default: null,
     },
-    
-    premiumExpiresAt: Date,
-
+    premiumSince: {
+      type: Date,
+    },
+    premiumExpiry: {
+      type: Date,
+    },
     photoUrl: {
       type: String,
       default: "https://geographyandyou.com/images/user-profile.png",
@@ -159,6 +163,17 @@ userSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
+
+// Add method to check if premium is active
+userSchema.methods.isPremiumActive = function() {
+  if (!this.isPremium) return false;
+  if (this.premiumExpiry && new Date() > this.premiumExpiry) {
+    this.isPremium = false;
+    this.membershipType = null;
+    return false;
+  }
+  return true;
+};
 
 // access and refresh token
 userSchema.methods.generateAccessToken = function () {

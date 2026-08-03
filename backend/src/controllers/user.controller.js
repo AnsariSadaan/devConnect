@@ -7,8 +7,57 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { AsyncHandler } from "../utils/AsyncHandler.js";
 
+
 const USER_SAFE_DATA =
   "firstName lastName photoUrl age gender about skills location currentCompany experience";
+
+const FREE_LIMITS = {
+  requests: 10,
+  messages: 100,
+};
+
+// Get user limits
+const getUserLimits = AsyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const isPremium = req.user.isPremium;
+
+  if (isPremium) {
+    return res.status(200).json(
+      new ApiResponse(200, {
+        requests: { used: 0, max: Infinity },
+        messages: { used: 0, max: Infinity },
+        isPremium: true,
+      }, "Premium user - unlimited limits")
+    );
+  }
+
+  // Get today's date range
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // Count today's connection requests (sent)
+  const requestsCount = await ConnectionRequest.countDocuments({
+    fromUserId: userId,
+    createdAt: { $gte: today, $lt: tomorrow },
+    status: { $in: ['interested', 'accepted'] },
+  });
+
+  // Count today's messages (sent)
+  const messagesCount = await Message.countDocuments({
+    senderId: userId,
+    createdAt: { $gte: today, $lt: tomorrow },
+  });
+
+  return res.status(200).json(
+    new ApiResponse(200, {
+      requests: { used: requestsCount, max: FREE_LIMITS.requests },
+      messages: { used: messagesCount, max: FREE_LIMITS.messages },
+      isPremium: false,
+    }, "Free user limits")
+  );
+});
 
 const Feed = AsyncHandler(async (req, res) => {
   const loggedInUser = req.user;
@@ -153,6 +202,7 @@ const userConnection = AsyncHandler(async (req, res) => {
 });
 
 export {
+  getUserLimits,
   Feed,
   userRequestsReceived,
   userConnection,
