@@ -1,6 +1,6 @@
 const membershipAmount = {
-    'silver': 300,
-    "gold": 700,
+    'silver': 299,
+    "gold": 499,
 };
 
 export default membershipAmount;
