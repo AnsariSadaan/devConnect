@@ -14,30 +14,33 @@ import CancellationAndRefund from "./components/policy/CancellationAndRefund"
 import ShippingAndDelivery from "./components/policy/ShippingAndDelivery"
 import ContactUs from "./components/policy/ContactUs"
 import Chat from "./components/Chat"
+import ThemeProvider from "./components/ThemeProvider";
 
 function App() {
   return (
     <>
       <Provider store={appStore}>
-        <BrowserRouter basename="/">
-          <Routes>
-            <Route path="/" element={<Body />}>
-              <Route index element={<Navigate to="/login" />} /> {/* redirect */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/feed" element={<Feed />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/connections" element={<Connections />} />
-              <Route path="/requests" element={<Requests />} />
-              <Route path="/premium" element={<Premium />} />
-              <Route path="/chat" element={<Chat />} />
-            </Route>
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms" element={<TermsAndCondition />} />
-            <Route path="/cancellation" element={<CancellationAndRefund />} />
-            <Route path="/shipping" element={<ShippingAndDelivery />} />
-            <Route path="/contact" element={<ContactUs />} />
-          </Routes>
-        </BrowserRouter>
+        <ThemeProvider>
+          <BrowserRouter basename="/">
+            <Routes>
+              <Route path="/" element={<Body />}>
+                <Route index element={<Navigate to="/login" />} /> {/* redirect */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/feed" element={<Feed />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/connections" element={<Connections />} />
+                <Route path="/requests" element={<Requests />} />
+                <Route path="/premium" element={<Premium />} />
+                <Route path="/chat" element={<Chat />} />
+              </Route>
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsAndCondition />} />
+              <Route path="/cancellation" element={<CancellationAndRefund />} />
+              <Route path="/shipping" element={<ShippingAndDelivery />} />
+              <Route path="/contact" element={<ContactUs />} />
+            </Routes>
+          </BrowserRouter>
+        </ThemeProvider> 
       </Provider>
     </>
   )

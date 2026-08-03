@@ -1,127 +1,146 @@
-// import React from 'react';
-// import { Link } from 'react-router-dom';
-
-// const Footer = () => {
-//     return (
-//         <footer className="footer sm:footer-horizontal bg-neutral text-neutral-content items-center p-4 bottom-0 flex flex-col sm:flex-row justify-between">
-//             <aside className="grid-flow-col items-center gap-2 mb-4 sm:mb-0">
-//                 <svg
-//                     width="36"
-//                     height="36"
-//                     viewBox="0 0 24 24"
-//                     xmlns="http://www.w3.org/2000/svg"
-//                     fillRule="evenodd"
-//                     clipRule="evenodd"
-//                     className="fill-current">
-//                     <path d="M22.672 15.226l-2.432.811.841 2.515c.33 1.019-.209 2.127-1.23 2.456-1.15.325-2.148-.321-2.463-1.226l-.84-2.518-5.013 1.677.84 2.517c.391 1.203-.434 2.542-1.831 2.542-.88 0-1.601-.564-1.86-1.314l-.842-2.516-2.431.809c-1.135.328-2.145-.317-2.463-1.229-.329-1.018.211-2.127 1.231-2.456l2.432-.809-1.621-4.823-2.432.808c-1.355.384-2.558-.59-2.558-1.839 0-.817.509-1.582 1.327-1.846l2.433-.809-.842-2.515c-.33-1.02.211-2.129 1.232-2.458 1.02-.329 2.13.209 2.461 1.229l.842 2.515 5.011-1.677-.839-2.517c-.403-1.238.484-2.553 1.843-2.553.819 0 1.585.509 1.85 1.326l.841 2.517 2.431-.81c1.02-.33 2.131.211 2.461 1.229.332 1.018-.21 2.126-1.23 2.456l-2.433.809 1.622 4.823 2.433-.809c1.242-.401 2.557.484 2.557 1.838 0 .819-.51 1.583-1.328 1.847m-8.992-6.428l-5.01 1.675 1.619 4.828 5.011-1.674-1.62-4.829z"></path>
-//                 </svg>
-//                 <p>Copyright © {new Date().getFullYear()} - All right reserved</p>
-//             </aside>
-
-//             <nav className="grid-flow-col gap-4 mb-4 sm:mb-0 sm:ml-auto sm:mr-4">
-//                 <a>
-//                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className="fill-current">
-//                         <path d="M24 4.557c-.883.392-1.832.656-2.828.775..."></path>
-//                     </svg>
-//                 </a>
-//                 <a>
-//                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className="fill-current">
-//                         <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0..."></path>
-//                     </svg>
-//                 </a>
-//                 <a>
-//                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className="fill-current">
-//                         <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4..."></path>
-//                     </svg>
-//                 </a>
-//             </nav>
-
-//             <ul className="flex flex-col sm:flex-row gap-2 text-sm sm:text-base">
-//                 <li><Link to="/privacy-policy" className="hover:underline">Privacy Policy</Link></li>
-//                 <li><Link to="/terms" className="hover:underline">Terms & Conditions</Link></li>
-//                 <li><Link to="/cancellation" className="hover:underline">Cancellation</Link></li>
-//                 <li><Link to="/shipping" className="hover:underline">Shipping</Link></li>
-//                 <li><Link to="/contact" className="hover:underline">Contact Us</Link></li>
-//             </ul>
-//         </footer>
-//     );
-// };
-
-// export default Footer;
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaGithub,
   FaLinkedin,
-  FaInstagram,
+  FaTwitter,
+  FaYoutube,
   FaHeart,
+  FaCode,
 } from "react-icons/fa";
+import { FiMail, FiMapPin } from 'react-icons/fi';
 
 const Footer = () => {
-    return (
-        <footer className="footer footer-center lg:footer-horizontal bg-neutral text-neutral-content px-8 py-6 border-t border-base-300">
-            <aside className="flex items-center gap-2">
-                <FaHeart className="text-error text-xl" />
-                <p>Copyright © {new Date().getFullYear()} - All right reserved</p>
-            </aside>
+  const currentYear = new Date().getFullYear();
 
-            <nav className="flex gap-5 text-2xl">
+  const footerLinks = [
+    { title: 'Product', links: [
+      { label: 'Features', path: '/premium' },
+      { label: 'Pricing', path: '/premium' },
+    ]},
+    { title: 'Company', links: [
+      { label: 'About', path: '/about' }
+    ]},
+    { title: 'Support', links: [
+      { label: 'Contact', path: '/contact' },
+      { label: 'Shipping', path: '/shipping' },
+      { label: 'Privacy Policy', path: '/privacy-policy' },
+    ]},
+  ];
+
+  return (
+    <footer className="bg-base-200 border-t border-base-300">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Main Footer Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+          {/* Brand Section */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-2 mb-4">
+              <FaCode className="text-primary text-2xl" />
+              <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                DevConnect
+              </span>
+            </div>
+            <p className="text-base-content/70 text-sm leading-relaxed max-w-sm">
+              Connect with developers worldwide. Build your network, share knowledge,
+              and grow your career in the developer community.
+            </p>
+            <div className="flex gap-4 mt-4">
               <a
-                href="https://github.com/"
+                href="https://github.com/AnsariSadaan"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:text-primary transition-colors"
+                className="p-2 rounded-lg bg-base-300 hover:bg-primary/10 transition-colors duration-200"
+                aria-label="GitHub"
               >
-                <FaGithub />
+                <FaGithub className="w-5 h-5" />
               </a>
               <a
-                href="https://linkedin.com/"
+                href="https://www.linkedin.com/in/sadaan-ansari-82a191214/"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:text-primary transition-colors"
+                className="p-2 rounded-lg bg-base-300 hover:bg-primary/10 transition-colors duration-200"
+                aria-label="LinkedIn"
               >
-                <FaLinkedin />
+                <FaLinkedin className="w-5 h-5" />
               </a>
+              <a
+                href="https://x.com/sadaan_18"
+                target="_blank"
+                rel="noreferrer"
+                className="p-2 rounded-lg bg-base-300 hover:bg-primary/10 transition-colors duration-200"
+                aria-label="Twitter"
+              >
+                <FaTwitter className="w-5 h-5" />
+              </a>
+            </div>
+          </div>
+
+          {/* Link Sections */}
+          {footerLinks.map((section) => (
+            <div key={section.title}>
+              <h3 className="font-semibold mb-4">{section.title}</h3>
+              <ul className="space-y-2">
+                {section.links.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      to={link.path}
+                      className="text-sm text-base-content/70 hover:text-primary transition-colors duration-200"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom Section */}
+        <div className="mt-12 pt-8 border-t border-base-300">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2 text-sm text-base-content/60">
+              <FaHeart className="text-error text-sm" />
+              <span>
+                Made with love by{' '}
                 <a
-                  href="https://instagram.com/"
+                  href="https://github.com/AnsariSadaan"
                   target="_blank"
                   rel="noreferrer"
-                  className="hover:text-primary transition-colors"
+                  className="hover:text-primary transition-colors duration-200"
                 >
-                  <FaInstagram />
+                  Sadaan Ansari
                 </a>
-            </nav>
+              </span>
+              <span className="hidden sm:inline">•</span>
+              <span>© {currentYear} DevConnect</span>
+            </div>
 
-            <ul className="flex flex-wrap justify-center gap-4 text-sm">
-                <li>
-                  <Link to="/privacy-policy" className="hover:text-primary">
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/terms" className="hover:text-primary">
-                    Terms & Conditions
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/cancellation" className="hover:text-primary">
-                    Cancellation
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/shipping" className="hover:text-primary">
-                    Shipping
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/contact" className="hover:text-primary">
-                    Contact Us
-                  </Link>
-                </li>
-            </ul>
-        </footer>
-    );
+            <div className="flex items-center gap-4 text-sm">
+              <Link
+                to="/privacy-policy"
+                className="text-base-content/60 hover:text-primary transition-colors duration-200"
+              >
+                Privacy
+              </Link>
+              <Link
+                to="/terms"
+                className="text-base-content/60 hover:text-primary transition-colors duration-200"
+              >
+                Terms
+              </Link>
+              <Link
+                to="/contact"
+                className="text-base-content/60 hover:text-primary transition-colors duration-200"
+              >
+                Contact
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
 };
 
 export default Footer;
