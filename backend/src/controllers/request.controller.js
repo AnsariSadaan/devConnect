@@ -143,9 +143,9 @@ const reviewRequest = AsyncHandler(async (req, res) => {
     throw new ApiError(404,"Connection request not found or already reviewed.");
   }
 
-  console.log("Request Found:", connectionRequest);
-  console.log("From:",connectionRequest.fromUserId.toString());
-  console.log("To:",connectionRequest.toUserId.toString());
+  // console.log("Request Found:", connectionRequest);
+  // console.log("From:",connectionRequest.fromUserId.toString());
+  // console.log("To:",connectionRequest.toUserId.toString());
 
   // Reject Request
   if (status === "rejected") {
@@ -161,6 +161,7 @@ const reviewRequest = AsyncHandler(async (req, res) => {
   try {
     session.startTransaction();
     // Check existing connection
+    
     const existingConnection = await Connection.findOne({
       users: {
         $all: [
@@ -169,6 +170,10 @@ const reviewRequest = AsyncHandler(async (req, res) => {
         ],
       },
     }).session(session);
+
+    console.log("loggedInUser", loggedInUser._id.toString());
+console.log("requestId", requestId);
+console.log("connectionRequest", connectionRequest);
 
     if (existingConnection) {
 
@@ -190,7 +195,7 @@ const reviewRequest = AsyncHandler(async (req, res) => {
       }
     );
 
-    console.log("Connection created:",connection[0]);
+    // console.log("Connection created:",connection[0]);
 
     // Delete accepted request
     await ConnectionRequest.findByIdAndDelete(

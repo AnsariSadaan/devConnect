@@ -12,7 +12,6 @@ const getSecretRoomId = (userId, targetUserId) => {
 }
 
 const initializeSocket = (server) => {
-  console.log("socket initialize");
   const io = new Server(server,  {
     // path: '/api/socket.io',
     cors: {
@@ -23,8 +22,6 @@ const initializeSocket = (server) => {
   })
   
   io.on("connection", (socket) => {
-    console.log("User Connected");
-
     // USER ONLINE
     socket.on("userOnline", async ({ userId }) => {
       socket.userId = userId;
@@ -63,7 +60,6 @@ const initializeSocket = (server) => {
         socket.join(roomId);
         socket.currentRoom = roomId;
         socket.currentChatId = chatId;
-        console.log(`${firstName} (${userId}) Joined Room: ${roomId} for Chat: ${chatId}`);
       } catch (error) {
         console.error("Error joining chat:", error);
       }
@@ -112,13 +108,10 @@ const initializeSocket = (server) => {
         }
 
         const roomId =getSecretRoomId(userId, targetUserId.toString());
-        console.log(`Sending message in room: ${roomId}`);
-        console.log(`From: ${userId}, To: ${targetUserId}`);
 
         // Make sure the sender is in the room
         if (!socket.rooms.has(roomId)) {
           socket.join(roomId);
-          console.log(`Added sender ${userId} to room: ${roomId}`);
         }
 
         const message = await Message.create({
@@ -129,13 +122,13 @@ const initializeSocket = (server) => {
           status: "sent",
         });
 
-        // Update chat with last message
-        chat.lastMessage = message._id;
-        chat.lastMessageAt = new Date();
-        chat.lastMessageSender = userId;
-        await chat.save();
+        await Chat.findByIdAndUpdate(chatId, {
+          lastMessage: message._id,
+          lastMessageAt: message.createdAt,
+          lastMessageSender: message.senderId,
+        });
 
-        const populatedMessage = await Message.findById(message._id).populate(
+        const populatedMessage = await message.populate(
           "senderId",
           "firstName lastName photoUrl"
         );
@@ -158,9 +151,8 @@ const initializeSocket = (server) => {
           status: "delivered",
         });
 
-        // IMPORTANT: Emit only to the specific room
+        // Emit only to the specific room
         io.to(roomId).emit("messageReceived", formattedMessage);
-        console.log(`Message sent to room: ${roomId}`);
 
 
       } catch (error) {
@@ -247,7 +239,6 @@ const initializeSocket = (server) => {
     socket.on("disconnect", async () => {
       try {
         if (socket.userId) {
-          console.log(`User ${socket.userId} disconnected`);
           await User.findByIdAndUpdate(socket.userId, {
             isOnline: false,
             lastSeen: new Date(),

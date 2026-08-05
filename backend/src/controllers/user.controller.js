@@ -2,6 +2,7 @@ import { ConnectionRequest } from "../models/connectionRequest.model.js";
 import { Connection } from "../models/connection.model.js";
 import { User } from "../models/user.model.js";
 import { Chat } from "../models/chat.model.js";
+import { Message } from '../models/message.model.js';
 
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";

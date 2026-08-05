@@ -207,8 +207,8 @@ userSchema.methods.generateRefreshToken = function () {
 
 userSchema.methods.validatePassword = async function (passwordInputByUser) {
 
-  console.log("Input Password:", passwordInputByUser);
-  console.log("DB Hash:", this.password);
+  // console.log("Input Password:", passwordInputByUser);
+  // console.log("DB Hash:", this.password);
 
   const user = this;
   

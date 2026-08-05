@@ -6,7 +6,7 @@ import sendEmail from './sendEmail.js';
 //this cron job will run at 8am in morning everyday
 cron.schedule("0 8 * * *", async () => {
     //send email to all people who got requests the prevoius day 
-    console.log("Hello World" + new Date());
+    // console.log("Hello World" + new Date());
 
     try {
 
@@ -14,7 +14,7 @@ cron.schedule("0 8 * * *", async () => {
         const yesterdayStart = startOfDay(yesterday);
         const yesterdayEnd = endOfDay(yesterday)
 
-        console.log(yesterday);
+        // console.log(yesterday);
         const pendingRequestsOfYesterday = await ConnectionRequest.find({
             status: "interested",
             createdAt: {
@@ -24,7 +24,7 @@ cron.schedule("0 8 * * *", async () => {
         }).populate('fromUserId toUserId');
 
         const listOfEmails = [...new Set(pendingRequestsOfYesterday.map(req => req.toUserId.emailId))]
-        console.log(listOfEmails);
+        // console.log(listOfEmails);
         for (const email of listOfEmails) {
 
             //send email
@@ -33,13 +33,13 @@ cron.schedule("0 8 * * *", async () => {
                     "New friend request pending for " 
                     + email, 
                     " there are so many request pending, please login to devconnect.info and accept or reject the request");
-                console.log(res);
+                // console.log(res);
             } catch (error) {
-                console.log(error);
+                console.error(error);
             }
         }
 
     } catch (error) {
-        console.log(error)
+        console.error(error)
     }
 })

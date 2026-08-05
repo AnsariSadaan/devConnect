@@ -15,14 +15,14 @@ const createRateLimiter = (options = {}) => {
       const key = `${userId}:${ip}`;
       
       // ✅ ADD DEBUG LOGGING
-      console.log(`🔑 Rate limit key generated: ${key}`);
-      console.log(`📡 Request IP: ${req.ip}`);
+      // console.log(`🔑 Rate limit key generated: ${key}`);
+      // console.log(`📡 Request IP: ${req.ip}`);
       
       return key;
     },
     // ✅ ADD HANDLER to see when limit is reached
     handler: (req, res, next, options) => {
-      console.log(`🚨 Rate limit EXCEEDED for ${req.ip}`);
+      // console.log(`🚨 Rate limit EXCEEDED for ${req.ip}`);
       res.status(options.statusCode).json(options.message);
     },
     ...options
@@ -67,4 +67,4 @@ export const otpLimiter = createRateLimiter({
   }
 });
 
-console.log('✅ Rate limiters initialized successfully');
+// console.log('✅ Rate limiters initialized successfully');

@@ -68,10 +68,10 @@ const paymentWithWebhook = AsyncHandler(async (req, res) => {
         );
 
     if (!isWebhokkValid) {
-        console.log("Invalid Webhook Signature");
+        // console.log("Invalid Webhook Signature");
         throw new ApiError(400, "WebHook Signature is invalid");
     }
-    console.log("Valid Webhook Signature");
+    // console.log("Valid Webhook Signature");
 
     //update the payment in db
     const paymentDetails = req.body.payload.payment.entity;
@@ -82,7 +82,7 @@ const paymentWithWebhook = AsyncHandler(async (req, res) => {
     }
     payment.status = paymentDetails.status;
     await payment.save();
-    console.log("Payment saved");
+    // console.log("Payment saved");
 
     // updat the user as premium customer
     const user = await User.findOne({_id: payment.userId});
@@ -104,7 +104,7 @@ const paymentWithWebhook = AsyncHandler(async (req, res) => {
     user.premiumExpiry = expiryDate;
 
     await user.save();
-    console.log("User updated to premium:", user._id);
+    // console.log("User updated to premium:", user._id);
 
     return res.status(200).json(new ApiResponse(200, {user}, "webhook recieved successfully"));
 })

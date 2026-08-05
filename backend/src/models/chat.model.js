@@ -29,7 +29,8 @@ const chatSchema = new mongoose.Schema(
 
     lastMessageSender: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User"
+      ref: "User",
+      default: null
     },
   },
   {
@@ -39,10 +40,13 @@ const chatSchema = new mongoose.Schema(
 
 chatSchema.index({
   participants: 1,
+  lastMessageAt: -1
 });
 
 chatSchema.pre("save", function (next) {
-  this.participants.sort();
+  this.participants.sort((a, b) =>
+    a.toString().localeCompare(b.toString())
+  );
   next();
 });
 

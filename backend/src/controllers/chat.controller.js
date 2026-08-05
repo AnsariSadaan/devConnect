@@ -2,7 +2,7 @@ import { Chat } from "../models/chat.model.js";
 import { Message } from "../models/message.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { AsyncHandler } from "../utils/AsyncHandler.js";
-import { ConnectionRequest } from "../models/connectionRequest.model.js"
+import { Connection } from "../models/connection.model.js"
 
 const chatController = AsyncHandler(async (req, res) => {
   const { chatId } = req.params;
@@ -17,10 +17,17 @@ const chatController = AsyncHandler(async (req, res) => {
     );
   }
 
-  // Verify user is participant
-  if (!chat.participants.includes(userId)) {
+  const isParticipant = chat.participants.some(
+    participant => participant.toString() === userId.toString()
+  );
+
+  if (!isParticipant) {
     return res.status(403).json(
-      new ApiResponse(403, null, "You are not a participant in this chat")
+      new ApiResponse(
+      403,
+      null,
+      "You are not a participant in this chat"
+      )
     );
   }
 
@@ -45,69 +52,48 @@ const chatController = AsyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, {chat, messages: formattedMessages}, "chats fetched successfully!"));
 })
 
-// In your chat controller
 const getLastMessagesForConnections = AsyncHandler(async (req, res) => {
+
   const userId = req.user._id;
-  
-  // Get all connections
-  const connections = await ConnectionRequest.find({
-    $or: [
-      { fromUserId: userId, status: "accepted" },
-      { toUserId: userId, status: "accepted" }
-    ]
-  }).populate('fromUserId toUserId', 'firstName lastName photoUrl');
-  
-  if (!connections || connections.length === 0) {
-    return res.status(200).json(
-      new ApiResponse(200, { lastMessages: {} }, "No connections found")
-    );
-  }
+  const chats = await Chat.find({
+    participants: userId
+  })
+  .sort({
+    lastMessageAt:-1
+  })
+  .populate({
+    path:"lastMessage",
+    populate:{
+      path:"senderId",
+      select:"firstName lastName photoUrl"
+    }
+  });
 
-  // Create an object to store last messages with userId as key
-  const lastMessagesMap = {};
+  const lastMessages = {};
 
-  // Get last message for each connection
-  await Promise.all(
-    connections.map(async (connection) => {
-      const otherUserId = connection.fromUserId._id.toString() === userId.toString() 
-        ? connection.toUserId._id 
-        : connection.fromUserId._id;
-      
-      const chat = await Chat.findOne({
-        participants: { $all: [userId, otherUserId] }
-      });
-      
-      if (!chat) {
-        lastMessagesMap[chat._id.toString()] = null;
-        return;
-      }
-      
-      const lastMessage = await Message.findOne({ chatId: chat._id })
-        .sort({ createdAt: -1 })
-        .populate('senderId', 'firstName lastName photoUrl');
-      
-      if (lastMessage) {
-        // Format the message to match frontend expectations
-        lastMessagesMap[chat._id.toString()] = {
-          _id: lastMessage._id,
-          chatId: chat._id.toString(),
-          senderId: lastMessage.senderId._id.toString(),
-          firstName: lastMessage.senderId.firstName,
-          lastName: lastMessage.senderId.lastName,
-          photoUrl: lastMessage.senderId.photoUrl,
-          text: lastMessage.text,
-          createdAt: lastMessage.createdAt,
-          status: lastMessage.status,
-        };
-      } else {
-        lastMessagesMap[chat._id.toString()] = null;
-      }
-    })
-  );
-  
+  chats.forEach(chat => {
+    if (!chat.lastMessage) return;
+      lastMessages[chat._id.toString()] = {
+        _id: chat.lastMessage._id,
+        chatId: chat._id.toString(),
+        senderId: chat.lastMessage.senderId._id.toString(),
+        firstName: chat.lastMessage.senderId.firstName,
+        lastName: chat.lastMessage.senderId.lastName,
+        photoUrl: chat.lastMessage.senderId.photoUrl,
+        text: chat.lastMessage.text,
+        createdAt: chat.lastMessage.createdAt,
+        status: chat.lastMessage.status,
+      };
+    });
+
   return res.status(200).json(
-    new ApiResponse(200, { lastMessages: lastMessagesMap }, "Last messages fetched successfully")
+    new ApiResponse(
+      200,
+      { lastMessages },
+      "Last messages fetched successfully"
+    )
   );
+
 });
 
 
