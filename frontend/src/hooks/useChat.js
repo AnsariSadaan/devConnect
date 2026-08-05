@@ -10,6 +10,8 @@ import {
   incrementUnread,
 } from "../utils/chatSlice";
 
+import { moveConnectionToTop } from '../utils/connectionSlice.js';
+
 const useChat = () => {
   const dispatch = useDispatch();
   const socketRef = useRef(null);
@@ -91,9 +93,12 @@ const useChat = () => {
         if (msgs.length > 0) {
           const lastMsg = msgs[msgs.length - 1];
           dispatch(updateLastMessage({
-            userId: selectedChatId,
+            chatId: selectedChatId,
             message: lastMsg
           }));
+
+        // Move connection to top when fetching messages
+        dispatch(moveConnectionToTop(selectedChatId));
         }
       } catch (err) {
         console.error("Error fetching messages:", err);
@@ -118,6 +123,8 @@ const useChat = () => {
           chatId: message.chatId,
           message
         }));
+
+        dispatch(moveConnectionToTop(message.chatId));
       } else {
 
         dispatch(updateLastMessage({
@@ -128,6 +135,9 @@ const useChat = () => {
         dispatch(incrementUnread({
           chatId: message.chatId
         }));
+
+        // Move connection to top when fetching messages
+        dispatch(moveConnectionToTop(selectedChatId));
       }
     };
 
@@ -160,6 +170,7 @@ const useChat = () => {
       text: newMessage.trim(),
     });
 
+    dispatch(moveConnectionToTop(selectedChatId));
     setNewMessage("");
   };
 

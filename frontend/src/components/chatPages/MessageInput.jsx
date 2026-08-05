@@ -6,43 +6,30 @@ const MessageInput = ({
   setNewMessage,
   sendMessage,
 }) => {
-
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
       sendMessage();
     }
   };
 
   return (
-    <div className="border-t border-base-content/10 bg-base-200 p-4">
-      <div className="flex items-center gap-3">
-
-        {/* Emoji Button (Future Use) */}
-        <button
-          className="btn btn-circle btn-ghost text-xl"
-          disabled
-          title="Coming Soon"
-        >
-          😊
-        </button>
-
-        {/* Input */}
+    <div className="border-t border-base-content/10 bg-base-200 px-4 py-3">
+      <div className="flex items-center gap-2">
         <input
           type="text"
           placeholder="Type a message..."
-          className="input input-bordered flex-1"
+          className="input input-bordered flex-1 text-sm h-10"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={handleKeyDown}
         />
-
-        {/* Send */}
         <button
-          className="btn btn-primary btn-circle"
+          className="btn btn-primary btn-circle btn-sm"
           onClick={sendMessage}
           disabled={!newMessage.trim()}
         >
-          <FiSend size={18} />
+          <FiSend size={16} />
         </button>
       </div>
     </div>

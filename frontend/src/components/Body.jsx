@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import Navbar from './Navbar';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Footer from './Footer';
 import { useDispatch, useSelector } from 'react-redux';
 import { addUser } from '../utils/userSlice';
@@ -10,6 +10,8 @@ const Body = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const userData = useSelector((store) => store.user);
+  const location = useLocation();
+  const hideFooter = location.pathname === "/chat";
   
   const fetchUser = async () => {
     if (userData) return;
@@ -36,7 +38,8 @@ const Body = () => {
       <main className="flex-1 overflow-hidden">
         <Outlet />
       </main>
-      <Footer />
+      {!hideFooter && <Footer />}
+      {/*<Footer />*/}
     </div>
   );
 };

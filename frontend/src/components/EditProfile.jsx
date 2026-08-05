@@ -1,26 +1,43 @@
-import React, { useState } from 'react'
-import UserCard from './UserCard';
-import api from '../utils/axios';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useDispatch } from 'react-redux';
+import { 
+  FiUser, 
+  FiMail, 
+  FiMapPin, 
+  FiBriefcase, 
+  FiGithub, 
+  FiLinkedin, 
+  FiLink,
+  FiCode,
+  FiSave,
+  FiInfo,
+  FiAward,
+  FiCalendar
+} from 'react-icons/fi';
+import api from '../utils/axios';
 import { addUser } from '../utils/userSlice';
 
 const EditProfile = ({ user }) => {
+  const [formData, setFormData] = useState({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    age: user?.age || '',
+    gender: user?.gender || '',
+    about: user?.about || '',
+    photoUrl: user?.photoUrl || '',
+    skills: user?.skills?.join(', ') || '',
+    experience: user?.experience || 0,
+    currentCompany: user?.currentCompany || '',
+    location: user?.location || '',
+    githubUrl: user?.githubUrl || '',
+    linkedinUrl: user?.linkedinUrl || '',
+    portfolioUrl: user?.portfolioUrl || '',
+  });
 
-  const [firstName, setFirstName] = useState(user?.firstName);
-  const [lastName, setLastName] = useState(user?.lastName);
-  const [age, setAge] = useState(user?.age);
-  const [gender, setGender] = useState(user?.gender);
-  const [about, setAbout] = useState(user?.about);
-  const [photoUrl, setPhotoUrl] = useState(user?.photoUrl);
-  const [skills, setSkills] = useState(user?.skills?.join(", ") || "");
-  const [experience, setExperience] = useState(user?.experience || 0);
-  const [currentCompany, setCurrentCompany] = useState(user?.currentCompany || "");
-  const [location, setLocation] = useState(user?.location || "");
-  const [githubUrl, setGithubUrl] = useState(user?.githubUrl || "");
-  const [linkedinUrl, setLinkedinUrl] = useState(user?.linkedinUrl || "");
-  const [portfolioUrl, setPortfolioUrl] = useState(user?.portfolioUrl || "");
   const [error, setError] = useState('');
   const [showToast, setShowToast] = useState(false);
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
 
   const genderOptions = [
@@ -29,337 +46,337 @@ const EditProfile = ({ user }) => {
     { value: 'other', label: 'Other' }
   ];
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const saveProfile = async () => {
-    setError("");
+    setError('');
+    setLoading(true);
     try {
-
-      const response = await api.patch("/profile/edit",
-        {
-          firstName,
-          lastName,
-          age: Number(age),
-          gender,
-          about,
-          photoUrl,
-          experience: Number(experience),
-          currentCompany,
-          location,
-          githubUrl,
-          linkedinUrl,
-          portfolioUrl,
-          skills: skills
-            .split(",")
-            .map(skill => skill.trim())
-            .filter(Boolean)
-        },
-        { withCredentials: true }
-      )
+      const response = await api.patch("/profile/edit", {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        age: Number(formData.age),
+        gender: formData.gender,
+        about: formData.about,
+        photoUrl: formData.photoUrl,
+        experience: Number(formData.experience),
+        currentCompany: formData.currentCompany,
+        location: formData.location,
+        githubUrl: formData.githubUrl,
+        linkedinUrl: formData.linkedinUrl,
+        portfolioUrl: formData.portfolioUrl,
+        skills: formData.skills
+          .split(',')
+          .map(skill => skill.trim())
+          .filter(Boolean)
+      }, { withCredentials: true });
+      
       dispatch(addUser(response?.data?.data));
       setShowToast(true);
-      const i = setTimeout(() => {
-        setShowToast(false);
-      }, 3000);
+      setTimeout(() => setShowToast(false), 3000);
     } catch (error) {
-      console.log("FULL ERROR:", error);
-      console.log("RESPONSE:", error.response?.data);
-
-      setError(
-        error.response?.data?.message ||
-        error.message
-      );
+      setError(error.response?.data?.message || error.message);
+    } finally {
+      setLoading(false);
     }
-  }
-
+  };
 
   return (
-  <>
-    <div className="max-w-7xl mx-auto px-6 py-10">
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
-
-        {/* ================= Edit Form ================= */}
-        <div className="card card-border bg-base-300 flex-1 h-[85vh] flex flex-col">
-
-          {/* Header */}
-          <div className="p-6 border-b border-base-content/10">
-            <h2 className="text-2xl font-bold text-center">
-              Edit Profile
-            </h2>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col lg:flex-row gap-8"
+      >
+        {/* Edit Form */}
+        <div className="card bg-base-100 shadow-xl border border-base-200 flex-1 h-[85vh] flex flex-col overflow-hidden">
+          <div className="p-6 border-b border-base-200">
+            <h2 className="text-2xl font-bold text-center">Edit Profile</h2>
           </div>
 
-          {/* Scrollable Form */}
-          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary scrollbar-track-base-200 p-6">
-
+          <div className="flex-1 overflow-y-auto p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-              {/* First Name */}
-              <label className="form-control">
-                <div className="label">
-                  <span className="label-text">First Name</span>
-                </div>
-
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text flex items-center gap-2">
+                    <FiUser className="w-4 h-4" />
+                    First Name
+                  </span>
+                </label>
                 <input
                   type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
                   className="input input-bordered w-full"
                 />
-              </label>
+              </div>
 
-              {/* Last Name */}
-              <label className="form-control">
-                <div className="label">
-                  <span className="label-text">Last Name</span>
-                </div>
-
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text flex items-center gap-2">
+                    <FiUser className="w-4 h-4" />
+                    Last Name
+                  </span>
+                </label>
                 <input
                   type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
                   className="input input-bordered w-full"
                 />
-              </label>
+              </div>
 
-              {/* Age */}
-              <label className="form-control">
-                <div className="label">
-                  <span className="label-text">Age</span>
-                </div>
-
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text flex items-center gap-2">
+                    <FiCalendar className="w-4 h-4" />
+                    Age
+                  </span>
+                </label>
                 <input
                   type="number"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
+                  name="age"
+                  value={formData.age}
+                  onChange={handleChange}
                   className="input input-bordered w-full"
                 />
-              </label>
+              </div>
 
-              {/* Gender */}
-              <label className="form-control">
-                <div className="label">
-                  <span className="label-text">Gender</span>
-                </div>
-
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text flex items-center gap-2">
+                    <FiUser className="w-4 h-4" />
+                    Gender
+                  </span>
+                </label>
                 <select
-                  value={gender || ""}
-                  onChange={(e) => setGender(e.target.value)}
+                  name="gender"
+                  value={formData.gender || ''}
+                  onChange={handleChange}
                   className="select select-bordered w-full"
                 >
-                  <option value="" disabled>
-                    Select Gender
-                  </option>
-
+                  <option value="" disabled>Select Gender</option>
                   {genderOptions.map((option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
+                    <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
                 </select>
-              </label>
+              </div>
 
-              {/* Skills */}
-              <label className="form-control">
-                <div className="label">
-                  <span className="label-text">Skills</span>
-                </div>
-
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text flex items-center gap-2">
+                    <FiCode className="w-4 h-4" />
+                    Skills
+                  </span>
+                </label>
                 <input
                   type="text"
-                  value={skills}
-                  onChange={(e) => setSkills(e.target.value)}
+                  name="skills"
+                  value={formData.skills}
+                  onChange={handleChange}
                   placeholder="React, Node.js, MongoDB"
                   className="input input-bordered w-full"
                 />
-              </label>
-
-              {/* Experience */}
-              <label className="form-control">
-                <div className="label">
-                  <span className="label-text">
-                    Experience (Years)
-                  </span>
-                </div>
-
-                <input
-                  type="number"
-                  value={experience}
-                  onChange={(e) => setExperience(e.target.value)}
-                  className="input input-bordered w-full"
-                />
-              </label>
-
-              {/* Company */}
-              <label className="form-control">
-                <div className="label">
-                  <span className="label-text">
-                    Current Company
-                  </span>
-                </div>
-
-                <input
-                  type="text"
-                  value={currentCompany}
-                  onChange={(e) =>
-                    setCurrentCompany(e.target.value)
-                  }
-                  className="input input-bordered w-full"
-                />
-              </label>
-
-              {/* Location */}
-              <label className="form-control">
-                <div className="label">
-                  <span className="label-text">Location</span>
-                </div>
-
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="input input-bordered w-full"
-                />
-              </label>
-
-              {/* GitHub */}
-              <label className="form-control">
-                <div className="label">
-                  <span className="label-text">
-                    GitHub URL
-                  </span>
-                </div>
-
-                <input
-                  type="text"
-                  value={githubUrl}
-                  onChange={(e) => setGithubUrl(e.target.value)}
-                  className="input input-bordered w-full"
-                />
-              </label>
-
-              {/* LinkedIn */}
-              <label className="form-control">
-                <div className="label">
-                  <span className="label-text">
-                    LinkedIn URL
-                  </span>
-                </div>
-
-                <input
-                  type="text"
-                  value={linkedinUrl}
-                  onChange={(e) =>
-                    setLinkedinUrl(e.target.value)
-                  }
-                  className="input input-bordered w-full"
-                />
-              </label>
-
-              {/* Portfolio */}
-              <label className="form-control">
-                <div className="label">
-                  <span className="label-text">
-                    Portfolio URL
-                  </span>
-                </div>
-
-                <input
-                  type="text"
-                  value={portfolioUrl}
-                  onChange={(e) =>
-                    setPortfolioUrl(e.target.value)
-                  }
-                  className="input input-bordered w-full"
-                />
-              </label>
-
-              {/* Photo */}
-              <label className="form-control">
-                <div className="label">
-                  <span className="label-text">
-                    Photo URL
-                  </span>
-                </div>
-
-                <input
-                  type="text"
-                  value={photoUrl}
-                  onChange={(e) => setPhotoUrl(e.target.value)}
-                  className="input input-bordered w-full"
-                />
-              </label>
-
-              {/* About */}
-              <div className="md:col-span-2">
-                <label className="form-control">
-                  <div className="label">
-                    <span className="label-text">
-                      About
-                    </span>
-                  </div>
-
-                  <textarea
-                    value={about}
-                    onChange={(e) => setAbout(e.target.value)}
-                    className="textarea textarea-bordered h-32 w-full"
-                  />
-                </label>
               </div>
 
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text flex items-center gap-2">
+                    <FiAward className="w-4 h-4" />
+                    Experience (Years)
+                  </span>
+                </label>
+                <input
+                  type="number"
+                  name="experience"
+                  value={formData.experience}
+                  onChange={handleChange}
+                  className="input input-bordered w-full"
+                />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text flex items-center gap-2">
+                    <FiBriefcase className="w-4 h-4" />
+                    Current Company
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  name="currentCompany"
+                  value={formData.currentCompany}
+                  onChange={handleChange}
+                  className="input input-bordered w-full"
+                />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text flex items-center gap-2">
+                    <FiMapPin className="w-4 h-4" />
+                    Location
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  className="input input-bordered w-full"
+                />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text flex items-center gap-2">
+                    <FiGithub className="w-4 h-4" />
+                    GitHub URL
+                  </span>
+                </label>
+                <input
+                  type="url"
+                  name="githubUrl"
+                  value={formData.githubUrl}
+                  onChange={handleChange}
+                  className="input input-bordered w-full"
+                  placeholder="https://github.com/username"
+                />
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text flex items-center gap-2">
+                    <FiLinkedin className="w-4 h-4" />
+                    LinkedIn URL
+                  </span>
+                </label>
+                <input
+                  type="url"
+                  name="linkedinUrl"
+                  value={formData.linkedinUrl}
+                  onChange={handleChange}
+                  className="input input-bordered w-full"
+                  placeholder="https://linkedin.com/in/username"
+                />
+              </div>
+
+              <div className="form-control md:col-span-2">
+                <label className="label">
+                  <span className="label-text flex items-center gap-2">
+                    <FiLink className="w-4 h-4" />
+                    Portfolio URL
+                  </span>
+                </label>
+                <input
+                  type="url"
+                  name="portfolioUrl"
+                  value={formData.portfolioUrl}
+                  onChange={handleChange}
+                  className="input input-bordered w-full"
+                  placeholder="https://your-portfolio.com"
+                />
+              </div>
+
+              <div className="form-control md:col-span-2">
+                <label className="label">
+                  <span className="label-text flex items-center gap-2">
+                    <FiInfo className="w-4 h-4" />
+                    About
+                  </span>
+                </label>
+                <textarea
+                  name="about"
+                  value={formData.about}
+                  onChange={handleChange}
+                  className="textarea textarea-bordered h-32 w-full"
+                  placeholder="Tell us about yourself..."
+                />
+              </div>
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="border-t border-base-content/10 p-5">
-            <p className="text-red-500 mb-3">{error}</p>
+          <div className="p-6 border-t border-base-200">
+            {error && <p className="text-error text-sm mb-3">{error}</p>}
+            <button
+              className="btn btn-primary w-full gap-2"
+              onClick={saveProfile}
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="loading loading-spinner loading-sm"></span>
+              ) : (
+                <FiSave className="w-4 h-4" />
+              )}
+              Save Profile
+            </button>
+          </div>
+        </div>
 
-            <div className="card-actions justify-center">
-              <button
-                className="btn btn-primary"
-                onClick={saveProfile}
-              >
-                Save Profile
-              </button>
+        {/* Preview Card */}
+        <div className="w-full lg:w-96 flex-shrink-0 hidden lg:block">
+          <div className="card bg-base-100 shadow-xl border border-base-200 sticky top-24">
+            <div className="card-body">
+              <h3 className="font-bold text-center text-lg mb-4">Live Preview</h3>
+              <div className="flex flex-col items-center">
+                <div className="avatar">
+                  <div className="w-24 h-24 rounded-full ring-2 ring-primary/20">
+                    <img 
+                      src={formData.photoUrl || `https://ui-avatars.com/api/?name=${formData.firstName}`}
+                      alt="Preview"
+                      className="object-cover"
+                    />
+                  </div>
+                </div>
+                <h4 className="text-xl font-bold mt-3">
+                  {formData.firstName || 'John'} {formData.lastName || 'Doe'}
+                </h4>
+                {formData.currentCompany && (
+                  <p className="text-sm text-base-content/70 flex items-center gap-1">
+                    <FiBriefcase className="w-3 h-3" />
+                    {formData.currentCompany}
+                  </p>
+                )}
+                {formData.location && (
+                  <p className="text-sm text-base-content/60 flex items-center gap-1">
+                    <FiMapPin className="w-3 h-3" />
+                    {formData.location}
+                  </p>
+                )}
+                {formData.skills && (
+                  <div className="flex flex-wrap gap-2 mt-3 justify-center">
+                    {formData.skills.split(',').slice(0, 3).map((skill) => (
+                      <span key={skill} className="badge badge-primary badge-outline">
+                        {skill.trim()}
+                      </span>
+                    ))}
+                    {formData.skills.split(',').length > 3 && (
+                      <span className="badge badge-ghost">+{formData.skills.split(',').length - 3}</span>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-
         </div>
+      </motion.div>
 
-        {/* ================= Live Preview ================= */}
-
-        <div className="w-full lg:w-96 flex-shrink-0">
-          <UserCard
-            user={{
-              firstName,
-              lastName,
-              age,
-              gender,
-              about,
-              photoUrl,
-              experience,
-              currentCompany,
-              location,
-              skills,
-            }}
-          />
+      {showToast && (
+        <div className="toast toast-top toast-end">
+          <div className="alert alert-success">
+            <span>Profile saved successfully! 🎉</span>
+          </div>
         </div>
-
-      </div>
+      )}
     </div>
+  );
+};
 
-    {showToast && (
-      <div className="toast toast-top toast-end">
-        <div className="alert alert-success">
-          <span>
-            {user?.firstName} your profile was saved successfully.
-          </span>
-        </div>
-      </div>
-    )}
-  </>
-  )
-}
-
-export default EditProfile
+export default EditProfile;

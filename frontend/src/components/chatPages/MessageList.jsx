@@ -2,39 +2,36 @@ import React, { useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 
 const MessageList = ({ messages }) => {
-
   const bottomRef = useRef(null);
 
   // Auto scroll to latest message
-  useEffect(() => {
+  useEffect(() => {  
     bottomRef.current?.scrollIntoView({
-      behavior: "smooth",
+      behavior: messages.length < 5 ? "auto" : "smooth"
     });
   }, [messages]);
 
+  if (!messages || messages.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <p className="text-sm text-gray-500">
+          Start your conversation 👋
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto p-6 bg-base-100">
-
-      {messages.length === 0 ? (
-        <div className="h-full flex items-center justify-center">
-          <p className="text-gray-500">
-            Start your conversation 👋
-          </p>
-        </div>
-      ) : (
-        <>
-          {messages.map((message, index) => (
-            <MessageBubble
-              key={index}
-              message={message}
-            />
-          ))}
-
-          {/* Scroll Target */}
-          <div ref={bottomRef} />
-        </>
-      )}
-
+    <div className="h-full min-h-0 overflow-y-auto">
+      <div className="p-4 space-y-3">
+        {messages.map((message) => (
+          <MessageBubble
+            key={message._id}
+            message={message}
+          />
+        ))}
+        <div ref={bottomRef} />
+      </div>
     </div>
   );
 };
