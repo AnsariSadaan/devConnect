@@ -2,7 +2,7 @@ import { Chat } from "../models/chat.model.js";
 import { Message } from "../models/message.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { AsyncHandler } from "../utils/AsyncHandler.js";
-import { Connection } from "../models/connection.model.js"
+import { Connection } from "../models/connection.model.js";
 
 const chatController = AsyncHandler(async (req, res) => {
   const { chatId } = req.params;
@@ -23,15 +23,10 @@ const chatController = AsyncHandler(async (req, res) => {
 
   if (!isParticipant) {
     return res.status(403).json(
-      new ApiResponse(
-      403,
-      null,
-      "You are not a participant in this chat"
-      )
+      new ApiResponse(403, null, "You are not a participant in this chat")
     );
   }
 
-  
   const messages = await Message.find({
     chatId: chat._id,
   })
@@ -49,42 +44,77 @@ const chatController = AsyncHandler(async (req, res) => {
     createdAt: msg.createdAt,
     status: msg.status,
   }));
-  return res.status(200).json(new ApiResponse(200, {chat, messages: formattedMessages}, "chats fetched successfully!"));
-})
+  
+  return res.status(200).json(
+    new ApiResponse(200, { chat, messages: formattedMessages }, "chats fetched successfully!")
+  );
+});
 
 const getLastMessagesForConnections = AsyncHandler(async (req, res) => {
-
   const userId = req.user._id;
+
+  // First, get all connections for the user
+  const connections = await Connection.find({
+    users: userId
+  });
+
+  if (!connections || connections.length === 0) {
+    return res.status(200).json(
+      new ApiResponse(200, { lastMessages: {} }, "Last messages fetched successfully")
+    );
+  }
+
+  // Get all connected user IDs
+  const connectedUserIds = new Set();
+  connections.forEach(connection => {
+    connection.users.forEach(userIdStr => {
+      if (userIdStr.toString() !== userId.toString()) {
+        connectedUserIds.add(userIdStr.toString());
+      }
+    });
+  });
+
+  // Find chats where user is a participant AND the other participant is connected
   const chats = await Chat.find({
-    participants: userId
+    participants: userId,
+    'participants.1': { $exists: true } // Ensure there are 2 participants
   })
   .sort({
-    lastMessageAt:-1
+    lastMessageAt: -1
   })
   .populate({
-    path:"lastMessage",
-    populate:{
-      path:"senderId",
-      select:"firstName lastName photoUrl"
+    path: "lastMessage",
+    populate: {
+      path: "senderId",
+      select: "firstName lastName photoUrl"
     }
+  });
+
+  // Filter chats to only those where the other participant is connected
+  const connectedChats = chats.filter(chat => {
+    const otherParticipant = chat.participants.find(
+      p => p.toString() !== userId.toString()
+    );
+    return otherParticipant && connectedUserIds.has(otherParticipant.toString());
   });
 
   const lastMessages = {};
 
-  chats.forEach(chat => {
+  connectedChats.forEach(chat => {
     if (!chat.lastMessage) return;
-      lastMessages[chat._id.toString()] = {
-        _id: chat.lastMessage._id,
-        chatId: chat._id.toString(),
-        senderId: chat.lastMessage.senderId._id.toString(),
-        firstName: chat.lastMessage.senderId.firstName,
-        lastName: chat.lastMessage.senderId.lastName,
-        photoUrl: chat.lastMessage.senderId.photoUrl,
-        text: chat.lastMessage.text,
-        createdAt: chat.lastMessage.createdAt,
-        status: chat.lastMessage.status,
-      };
-    });
+    
+    lastMessages[chat._id.toString()] = {
+      _id: chat.lastMessage._id,
+      chatId: chat._id.toString(),
+      senderId: chat.lastMessage.senderId._id.toString(),
+      firstName: chat.lastMessage.senderId.firstName,
+      lastName: chat.lastMessage.senderId.lastName,
+      photoUrl: chat.lastMessage.senderId.photoUrl,
+      text: chat.lastMessage.text,
+      createdAt: chat.lastMessage.createdAt,
+      status: chat.lastMessage.status,
+    };
+  });
 
   return res.status(200).json(
     new ApiResponse(
@@ -93,8 +123,6 @@ const getLastMessagesForConnections = AsyncHandler(async (req, res) => {
       "Last messages fetched successfully"
     )
   );
-
 });
 
-
-export { chatController, getLastMessagesForConnections }
+export { chatController, getLastMessagesForConnections };
