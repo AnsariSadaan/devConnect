@@ -132,6 +132,7 @@ const userSchema = new Schema(
     currentCompany: {
       type: String,
       trim: true,
+      default: null
     },
 
     lastSeen: {
