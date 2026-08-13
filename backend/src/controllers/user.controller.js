@@ -25,8 +25,8 @@ const getUserLimits = AsyncHandler(async (req, res) => {
   if (isPremium) {
     return res.status(200).json(
       new ApiResponse(200, {
-        requests: { used: 0, max: Infinity },
-        messages: { used: 0, max: Infinity },
+        requests: { used: 0, max: "unlimited" },
+        messages: { used: 0, max: "unlimited" },
         isPremium: true,
       }, "Premium user - unlimited limits")
     );
