@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import api from "../../utils/axios";
 import { addConnections, moveConnectionToTop } from "../../utils/connectionSlice";
-import { setSelectedUser, clearUnread, updateLastMessage } from "../../utils/chatSlice";
+import { setSelectedUser, clearUnread, updateLastMessage, setUnreadCount } from "../../utils/chatSlice";
 
 const ChatSidebar = ({ onUserSelect }) => {
   const dispatch = useDispatch();
@@ -60,25 +60,36 @@ const ChatSidebar = ({ onUserSelect }) => {
       //     }
       //   });
       if (data?.lastMessages) {
-      // Sort chatIds by latest message timestamp
-      const sortedChatIds = Object.keys(data.lastMessages).sort((a, b) => {
-        const msgA = data.lastMessages[a];
-        const msgB = data.lastMessages[b];
-        return new Date(msgB.createdAt) - new Date(msgA.createdAt);
-      });
+        // Sort chatIds by latest message timestamp
+        const sortedChatIds = Object.keys(data.lastMessages).sort((a, b) => {
+          const msgA = data.lastMessages[a];
+          const msgB = data.lastMessages[b];
+          return new Date(msgB.createdAt) - new Date(msgA.createdAt);
+        });
 
-      // Update last messages and move connections to top
-      sortedChatIds.forEach(chatId => {
-        const message = data.lastMessages[chatId];
-        if (message) {
-          dispatch(updateLastMessage({
-            chatId: chatId,
-            message: message
-          }));
-          dispatch(moveConnectionToTop(chatId));
-        }
-      });
+        // Update last messages and move connections to top
+        sortedChatIds.forEach(chatId => {
+          const message = data.lastMessages[chatId];
+          if (message) {
+            dispatch(updateLastMessage({
+              chatId: chatId,
+              message: message
+            }));
+            dispatch(moveConnectionToTop(chatId));
+          }
+        });
       }
+
+      // Set unread counts
+      if (data?.unreadCounts) {
+        Object.keys(data.unreadCounts).forEach(chatId => {
+          dispatch(setUnreadCount({
+            chatId: chatId,
+            count: data.unreadCounts[chatId],
+          }));
+        });
+      }
+
     } catch (err) {
       console.error("Error fetching last messages:", err);
     }

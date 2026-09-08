@@ -8,6 +8,7 @@
     typingUsers: [],
     unreadMessages: {},
     lastMessages: {},
+    isTyping: {},
   };
 
   const chatSlice = createSlice({
@@ -23,7 +24,7 @@
       },
 
       // Messages
-       setMessages: (state, action) => {
+      setMessages: (state, action) => {
         state.messages = action.payload;
         
         // Update last message for this chat
@@ -34,11 +35,23 @@
       },
 
       addMessage: (state, action) => {
-        state.messages.push(action.payload);
+        // Prevent duplicate messages
+        const exists = state.messages.some(m => m._id === action.payload._id);
+        if (!exists) {
+          state.messages.push(action.payload);
+        }
         
         // Update last message
         if (state.selectedChatId) {
           state.lastMessages[state.selectedChatId] = action.payload;
+        }
+      },
+
+      updateMessageStatus: (state, action) => {
+        const { messageId, status } = action.payload;
+        const message = state.messages.find(m => m._id === messageId);
+        if (message) {
+          message.status = status;
         }
       },
 
@@ -76,9 +89,34 @@
         );
       },
 
+      // Typing per chat
+      setTyping: (state, action) => {
+        const { chatId, userId, isTyping } = action.payload;
+        if (isTyping) {
+          state.isTyping[chatId] = { userId, isTyping: true };
+        } else {
+          delete state.isTyping[chatId];
+        }
+      },
+
+      clearTyping: (state, action) => {
+        const chatId = action.payload;
+        delete state.isTyping[chatId];
+      },
+
+      // Unread Messages
+      setUnreadCount: (state, action) => {
+        const { chatId, count } = action.payload;
+        state.unreadMessages[chatId] = count;
+      },
+
       // Unread Messages
       incrementUnread: (state, action) => {
   		  const chatId = action.payload.chatId;
+        // Don't increment if the chat is currently selected
+        if (state.selectedChatId === chatId) {
+          return;
+        }
   		  state.unreadMessages[chatId] = (state.unreadMessages[chatId] || 0) + 1;
   		},
 
@@ -94,11 +132,11 @@
       },
 
       updateLastMessage: (state, action) => {
-  			const { chatId, message } = action.payload;
-  			if (chatId) {
-  			  state.lastMessages[chatId] = message;
-  			}
-  		},
+        const { chatId, message } = action.payload;
+        if (chatId && message) {
+          state.lastMessages[chatId] = message;
+        }
+      },
 
       clearChatState() {
         return initialState;
@@ -110,12 +148,16 @@
     setSelectedUser,
     setMessages,
     addMessage,
+    updateMessageStatus,
     clearMessages,
     setOnlineUsers,
     addOnlineUser,
     removeOnlineUser,
     addTypingUser,
     removeTypingUser,
+    setTyping,
+    clearTyping,
+    setUnreadCount,
     incrementUnread,
     clearUnread,
     setLastMessage,

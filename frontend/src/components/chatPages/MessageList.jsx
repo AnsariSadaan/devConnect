@@ -6,9 +6,11 @@ const MessageList = ({ messages }) => {
 
   // Auto scroll to latest message
   useEffect(() => {  
-    bottomRef.current?.scrollIntoView({
-      behavior: messages.length < 5 ? "auto" : "smooth"
-    });
+    if (messages && messages.length > 0) {
+      bottomRef.current?.scrollIntoView({
+        behavior: "smooth"
+      });
+    }
   }, [messages]);
 
   if (!messages || messages.length === 0) {
@@ -26,7 +28,7 @@ const MessageList = ({ messages }) => {
       <div className="p-4 space-y-3">
         {messages.map((message) => (
           <MessageBubble
-            key={message._id}
+            key={message._id || `temp-${Date.now()}`}
             message={message}
           />
         ))}

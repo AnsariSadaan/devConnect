@@ -14,6 +14,7 @@ const ChatWindow = ({ onBack }) => {
     newMessage,
     setNewMessage,
     sendMessage,
+    handleTyping,
   } = useChat();
 
   if (!selectedUser) {
@@ -31,8 +32,35 @@ const ChatWindow = ({ onBack }) => {
     );
   }
 
+  // return (
+  //   <div className="flex flex-col h-full overflow-hidden bg-base-100">
+  //     {/* Chat Header - fixed at top */}
+  //     <div className="flex-shrink-0">
+  //       {isMobile && onBack ? (
+  //         <ChatHeader onBack={onBack} showBack={true} />
+  //       ) : (
+  //         <ChatHeader />
+  //       )}
+  //     </div>
+      
+  //     {/* Message List - takes remaining space */}
+  //     <div className="flex-1 min-h-0 overflow-hidden">
+  //       <MessageList messages={messages} />
+  //     </div>
+      
+  //     {/* Message Input - fixed at bottom */}
+  //     <div className="flex-shrink-0">
+  //       <MessageInput
+  //         newMessage={newMessage}
+  //         setNewMessage={setNewMessage}
+  //         sendMessage={sendMessage}
+  //       />
+  //     </div>
+  //   </div>
+  // );
+
   return (
-    <div className="h-full flex flex-col h-full overflow-hidden bg-base-100">
+    <div className="flex flex-col h-full overflow-hidden bg-base-100">
       {/* Chat Header - fixed at top */}
       <div className="flex-shrink-0">
         {isMobile && onBack ? (
@@ -41,18 +69,19 @@ const ChatWindow = ({ onBack }) => {
           <ChatHeader />
         )}
       </div>
-      
+
       {/* Message List - takes remaining space */}
       <div className="flex-1 min-h-0 overflow-hidden">
         <MessageList messages={messages} />
       </div>
-      
+
       {/* Message Input - fixed at bottom */}
       <div className="flex-shrink-0">
         <MessageInput
           newMessage={newMessage}
           setNewMessage={setNewMessage}
           sendMessage={sendMessage}
+          handleTyping={handleTyping}
         />
       </div>
     </div>
