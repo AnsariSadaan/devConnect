@@ -13,9 +13,8 @@ const getSecretRoomId = (userId, targetUserId) => {
 
 const initializeSocket = (server) => {
   const io = new Server(server,  {
-    // path: '/api/socket.io',
     cors: {
-      origin: "http://localhost:5173",
+      origin: "*",
       methods: ["GET", "POST"],
       credentials: true
     },
@@ -23,23 +22,53 @@ const initializeSocket = (server) => {
   
   io.on("connection", (socket) => {
     // USER ONLINE
+    console.log("Socket connected:", socket.id);
     socket.on("userOnline", async ({ userId }) => {
-      socket.userId = userId;
+      try {
+        if (!userId) {
+          console.error("Missing userId for userOnline");
+          return;
+        }
 
-      await User.findByIdAndUpdate(userId, {
-        isOnline: true,
-      });
+        socket.userId = userId;
+        socket.isOnline = true;
+
+        await User.findByIdAndUpdate(userId, {
+          isOnline: true,
+          lastSeen: new Date(),
+        });
+
+        console.log(`User ${userId} is online`);
+      } catch (error) {
+        console.error("Error in userOnline:", error);
+      }
     });
     
-    //Handle events
     // JOIN CHAT
     socket.on("joinChat", async  ({userId, chatId, firstName }) => {
 
       try {
+        if (!userId || !chatId) {
+          console.error("Missing userId or chatId for joinChat");
+          return;
+        }
+        console.log(`User ${userId} joining chat ${chatId}`);
         const chat = await Chat.findById(chatId);
 
-        if(!chat) {
+        if (!chat) {
           console.error(`Chat ${chatId} not found`);
+          socket.emit("chatError", { error: "Chat not found" });
+          return;
+        }
+
+        // Verify user is participant
+        const isParticipant = chat.participants.some(
+          p => p.toString() === userId.toString()
+        );
+
+        if (!isParticipant) {
+          console.error(`User ${userId} is not a participant of chat ${chatId}`);
+          socket.emit("chatError", { error: "You are not a participant" });
           return;
         }
 
@@ -49,6 +78,7 @@ const initializeSocket = (server) => {
 
         if (!targetUserId) {
           console.error(`No other participant found in chat ${chatId}`);
+          socket.emit("chatError", { error: "No other participant found" });
           return;
         }
 
@@ -57,11 +87,28 @@ const initializeSocket = (server) => {
           targetUserId.toString()
         );
 
+        // Leave previous room if any
+        if (socket.currentRoom && socket.currentRoom !== roomId) {
+          socket.leave(socket.currentRoom);
+          console.log(`Socket left room ${socket.currentRoom}`);
+        }
+
         socket.join(roomId);
         socket.currentRoom = roomId;
         socket.currentChatId = chatId;
+
+        console.log(`Socket ${socket.id} joined room ${roomId} for chat ${chatId}`);
+
+        // Notify other user that this user is online in the chat
+        socket.to(roomId).emit("userOnlineInChat", {
+          userId,
+          chatId,
+          isOnline: true,
+        });
+      
       } catch (error) {
         console.error("Error joining chat:", error);
+        socket.emit("chatError", { error: "Failed to join chat" });
       }
     });
 
@@ -117,9 +164,11 @@ const initializeSocket = (server) => {
         const message = await Message.create({
           chatId: chat._id,
           senderId: userId,
-          text,
+          text: text.trim(),
           replyTo,
           status: "sent",
+          messageType: text,
+
         });
 
         await Chat.findByIdAndUpdate(chatId, {
@@ -145,6 +194,8 @@ const initializeSocket = (server) => {
           text: populatedMessage.text,
           createdAt: populatedMessage.createdAt,
           status: "delivered",
+          messageType: "text",
+          replyTo: replyTo,
         };
 
         await Message.findByIdAndUpdate(message._id, {
@@ -153,10 +204,10 @@ const initializeSocket = (server) => {
 
         // Emit only to the specific room
         io.to(roomId).emit("messageReceived", formattedMessage);
-
+        console.log(`Message sent to room ${roomId}: ${text}`);
 
       } catch (error) {
-         console.error("Error sending message:", error);
+        console.error("Error sending message:", error);
         socket.emit("messageError", {error: "Failed to send message: " + error.message });
       }
     });
@@ -165,7 +216,14 @@ const initializeSocket = (server) => {
     socket.on("messageSeen",async ({ chatId, userId }) => {
       
       try {
-        await Message.updateMany({
+
+        if (!chatId || !userId) {
+          console.error("Missing chatId or userId for messageSeen");
+          return;
+        }
+        // Update all unread messages from other users to "seen"
+        const result = await Message.updateMany(
+          {
           chatId,
           senderId: {
             $ne: userId,
@@ -173,11 +231,14 @@ const initializeSocket = (server) => {
           status: {
             $ne: "seen",
           },
+          isDeleted: false,
         },
           {
             status: "seen",
           }
         );
+
+        console.log(`Marked ${result.modifiedCount} messages as seen in chat ${chatId}`);
 
         const chat = await Chat.findById(chatId);
         if (chat) {
@@ -187,7 +248,7 @@ const initializeSocket = (server) => {
           
           if (otherUserId) {
             const roomId = getSecretRoomId(userId, otherUserId.toString());
-            io.to(roomId).emit("messagesSeen", { chatId });
+            io.to(roomId).emit("messagesSeen", { chatId, userId, timestamp: new Date(), });
           }
         }
       } catch (error) {
@@ -199,6 +260,8 @@ const initializeSocket = (server) => {
     socket.on("typing", async ({ userId, chatId }) => {
       
       try {
+
+        if (!userId || !chatId) return;
       
         const chat = await Chat.findById(chatId);
         if (!chat) return;
@@ -209,7 +272,7 @@ const initializeSocket = (server) => {
 
         if (targetUserId) {
           const roomId = getSecretRoomId(userId, targetUserId.toString());
-          socket.to(roomId).emit("userTyping", { userId, chatId });
+          socket.to(roomId).emit("userTyping", { userId, chatId, isTyping: true, });
         }
       } catch (error) {
         console.error("Error handling typing:", error);
@@ -219,7 +282,7 @@ const initializeSocket = (server) => {
     socket.on("stopTyping", async ({ userId, chatId }) => {
       
       try {
-      
+        if (!userId || !chatId) return;
         const chat = await Chat.findById(chatId);
         if (!chat) return;
 
@@ -229,7 +292,7 @@ const initializeSocket = (server) => {
 
         if (targetUserId) {
           const roomId = getSecretRoomId(userId, targetUserId.toString());
-          socket.to(roomId).emit("userStoppedTyping", { userId, chatId });
+          socket.to(roomId).emit("userStoppedTyping", { userId, chatId, isTyping: false, });
         }
       } catch (error) {
         console.error("Error handling stop typing:", error);
@@ -238,17 +301,31 @@ const initializeSocket = (server) => {
 
     socket.on("disconnect", async () => {
       try {
+        console.log(`Socket disconnected: ${socket.id}`);
         if (socket.userId) {
           await User.findByIdAndUpdate(socket.userId, {
             isOnline: false,
             lastSeen: new Date(),
           });
+
+          // Notify other users in the chat
+          if (socket.currentChatId && socket.currentRoom) {
+            socket.to(socket.currentRoom).emit("userOffline", {
+              userId: socket.userId,
+              chatId: socket.currentChatId,
+              isOnline: false,
+            });
+          }
+
+          console.log(`User ${socket.userId} is now offline`);
         }
       } catch (error) {
         console.error("Error during disconnect:", error);
       }
     });
   });
+
+  return io;
 }
 
 export default initializeSocket;

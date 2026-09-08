@@ -11,7 +11,7 @@ const router = Router();
 
 
 router.route('/signup').post(/*authLimiter*/ Signup);
-router.route('/login').post(authLimiter, Login);
+router.route('/login').post(/*authLimiter*/ Login);
 router.route("/refresh-token").post(authLimiter, refreshAccessToken);
 router.route('/logout').post(authLimiter, verifyJwt, Logout);
 

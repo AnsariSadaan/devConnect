@@ -29,6 +29,7 @@ const chatController = AsyncHandler(async (req, res) => {
 
   const messages = await Message.find({
     chatId: chat._id,
+    isDeleted: false, // Don't return deleted messages
   })
   .populate("senderId", "firstName lastName photoUrl")
   .sort({ createdAt: 1 });
@@ -43,6 +44,8 @@ const chatController = AsyncHandler(async (req, res) => {
     text: msg.text,
     createdAt: msg.createdAt,
     status: msg.status,
+    messageType: msg.messageType,
+    replyTo: msg.replyTo,
   }));
   
   return res.status(200).json(
@@ -60,7 +63,7 @@ const getLastMessagesForConnections = AsyncHandler(async (req, res) => {
 
   if (!connections || connections.length === 0) {
     return res.status(200).json(
-      new ApiResponse(200, { lastMessages: {} }, "Last messages fetched successfully")
+      new ApiResponse(200, { lastMessages: {}, unreadCounts: {} }, "Last messages fetched successfully")
     );
   }
 
@@ -99,30 +102,88 @@ const getLastMessagesForConnections = AsyncHandler(async (req, res) => {
   });
 
   const lastMessages = {};
+  const unreadCounts = {};
 
-  connectedChats.forEach(chat => {
-    if (!chat.lastMessage) return;
+  // connectedChats.forEach(chat => {
+  //   if (!chat.lastMessage) return;
     
-    lastMessages[chat._id.toString()] = {
-      _id: chat.lastMessage._id,
-      chatId: chat._id.toString(),
-      senderId: chat.lastMessage.senderId._id.toString(),
-      firstName: chat.lastMessage.senderId.firstName,
-      lastName: chat.lastMessage.senderId.lastName,
-      photoUrl: chat.lastMessage.senderId.photoUrl,
-      text: chat.lastMessage.text,
-      createdAt: chat.lastMessage.createdAt,
-      status: chat.lastMessage.status,
-    };
-  });
+  //   lastMessages[chat._id.toString()] = {
+  //     _id: chat.lastMessage._id,
+  //     chatId: chat._id.toString(),
+  //     senderId: chat.lastMessage.senderId._id.toString(),
+  //     firstName: chat.lastMessage.senderId.firstName,
+  //     lastName: chat.lastMessage.senderId.lastName,
+  //     photoUrl: chat.lastMessage.senderId.photoUrl,
+  //     text: chat.lastMessage.text,
+  //     createdAt: chat.lastMessage.createdAt,
+  //     status: chat.lastMessage.status,
+  //   };
+  // });
+  // Get unread counts for each chat
+  for (const chat of connectedChats) {
+    const chatId = chat._id.toString();
+
+    // Count unread messages (messages sent by others that are not seen)
+    const unreadCount = await Message.countDocuments({
+      chatId: chat._id,
+      senderId: { $ne: userId },
+      status: { $in: ["sent", "delivered"] },
+      isDeleted: false,
+    });
+
+    unreadCounts[chatId] = unreadCount;
+
+    if (chat.lastMessage) {
+      lastMessages[chatId] = {
+        _id: chat.lastMessage._id,
+        chatId: chatId,
+        senderId: chat.lastMessage.senderId._id.toString(),
+        firstName: chat.lastMessage.senderId.firstName,
+        lastName: chat.lastMessage.senderId.lastName,
+        photoUrl: chat.lastMessage.senderId.photoUrl,
+        text: chat.lastMessage.text,
+        createdAt: chat.lastMessage.createdAt,
+        status: chat.lastMessage.status,
+        messageType: chat.lastMessage.messageType,
+      };
+    }
+  }
 
   return res.status(200).json(
     new ApiResponse(
       200,
-      { lastMessages },
+      { lastMessages, unreadCounts },
       "Last messages fetched successfully"
     )
   );
 });
 
-export { chatController, getLastMessagesForConnections };
+const getUnreadCounts = AsyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  // Get all chats where user is a participant
+  const chats = await Chat.find({
+    participants: userId,
+  });
+
+  const unreadCounts = {};
+
+  for (const chat of chats) {
+    const count = await Message.countDocuments({
+      chatId: chat._id,
+      senderId: { $ne: userId },
+      status: { $in: ["sent", "delivered"] },
+      isDeleted: false,
+    });
+
+    if (count > 0) {
+      unreadCounts[chat._id.toString()] = count;
+    }
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, { unreadCounts }, "Unread counts fetched successfully")
+  );
+});
+
+export { chatController, getLastMessagesForConnections, getUnreadCounts };

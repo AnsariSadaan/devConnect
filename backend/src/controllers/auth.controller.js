@@ -62,7 +62,7 @@ const Signup = AsyncHandler(async (req, res) => {
   delete userResponse.refreshToken;
 
   return res.status(201).json(
-    new ApiResponse(201, userResponse, "User registered successfully!")
+    new ApiResponse(201, { user: userResponse, accessToken, refreshToken}, "User registered successfully!")
   );
 })
 
@@ -101,7 +101,7 @@ const Login = AsyncHandler(async (req, res) => {
   delete userResponse.refreshToken;
 
   return res.status(200).json(
-    new ApiResponse(200, userResponse, "Login Successfully")
+    new ApiResponse(200, { user: userResponse, accessToken, refreshToken }, "Login Successfully")
   );
 });
 
@@ -125,7 +125,8 @@ const Logout = AsyncHandler(async (req, res) => {
 
 const refreshAccessToken = AsyncHandler(async (req, res) => {
 
-  const refreshToken = req.cookies?.refreshToken;
+  // const refreshToken = req.cookies?.refreshToken;
+  const refreshToken = req.headers["x-refresh-token"] || req.cookies?.refreshToken;
   if (!refreshToken) {
     throw new ApiError(401, "Refresh Token Missing");
   }
@@ -167,7 +168,10 @@ const refreshAccessToken = AsyncHandler(async (req, res) => {
   res.cookie("refreshToken", newRefreshToken, refreshCookieOptions);
 
   return res.status(200).json(
-    new ApiResponse(200, null, "Access Token Refreshed")
+    new ApiResponse(200, {
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken
+    }, "Access Token Refreshed")
   );
 });
 
